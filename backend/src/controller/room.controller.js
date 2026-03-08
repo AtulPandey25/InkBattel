@@ -12,8 +12,10 @@ const createRoom=(socketId, playerDetail, roomSettings)=>{
             roomId,
             roomName: roomSettings.roomName,
             hostId: socketId,
-            chance:0,
+            choose:0,
             round:0,
+            guessWord:"",
+            isPlaying:false,
             players: [
                 {
                     ...playerDetail,
@@ -112,21 +114,22 @@ const gameStart=(roomId)=>{
         console.log(roomId)
         if(!room) return null
         room.round++;
+        room.isPlaying=true;
         if(room.choose===0){
-            room.players[choose].isDrawing=true;
+            room.players[room.choose].isDrawing=true;
         }
         else if(room.choose===room.players.length-1){
-            room.players[choose].isDrawing=false;
+            room.players[room.choose].isDrawing=false;
             room.choose=0;
             room.round++;
-            room.players[choose].isDrawing=false;
+            room.players[room.choose].isDrawing=false;
         }
         else{
-            room.players[choose].isDrawing=false;
+            room.players[room.choose].isDrawing=false;
             room.choose++;
-            room.players[choose].isDrawing=true;
+            room.players[room.choose].isDrawing=true;
         }
-        return room.players;
+        return {players:room.players,drawerId:room.players[room.choose].socketId};
     }
     catch(error){
         console.log(error)
@@ -134,4 +137,16 @@ const gameStart=(roomId)=>{
     }
 }
 
-module.exports={joinRoom,createRoom,exitRoom,sendMessage,gameStart}
+const drawWord=({roomId,word})=>{
+    try{
+        const room=rooms.get(roomId)
+        if(!room) return null
+        room.guessWord=word;
+        return room;
+    }catch(error){
+        console.log(error)
+        return null
+    }
+}
+
+module.exports={joinRoom,createRoom,exitRoom,sendMessage,gameStart,drawWord}

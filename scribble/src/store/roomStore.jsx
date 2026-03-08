@@ -9,6 +9,10 @@ export const useRoom = create((set) => ({
   myDetail: null,
   sktId: "",
   hostId:"",
+  drawerId:"",
+  drawWord:"",
+  isChoosing:false,
+  isPlaying:false,
   
   setPlayers: (players) => set({ players }),
   setSettings: (settings) => set({ settings }),
@@ -18,8 +22,11 @@ export const useRoom = create((set) => ({
   setMyDetail: (myDetail) => set({ myDetail }),
   setSktId: (sktId) => set({ sktId }),
   setHostId: (hostId) => set({ hostId }),
-  
-  
+  setDrawerId: (drawerId) => set({ drawerId}),
+  setIsPlaying: (isPlaying) => set({ isPlaying }),
+  setIsChoosing: (isChoosing) => set({ isChoosing }),
+  setDrawWord: (drawWord) => set({drawWord}),
+   
   
   resetRoom: () => set({
     players: [],
@@ -30,5 +37,7 @@ export const useRoom = create((set) => ({
     myDetail :[],
     sktId:"",
     hostId:"",
+    drawerId:"",
+    drawWord:"",
   })
 }))

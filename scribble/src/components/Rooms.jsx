@@ -1,7 +1,6 @@
 import React from 'react'
 
 const Rooms = () => {
-  console.log(room?.players)
   return (
     <div className="container-lg" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
       <div className="paper-card" style={{ textAlign: 'center', width:"500px"}}>

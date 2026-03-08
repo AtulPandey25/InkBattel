@@ -1,6 +1,7 @@
 import React, { useLayoutEffect,useState,useRef } from 'react'
 import WordGuess from "../components/WordGuess.jsx"
-
+import Start from '../components/Start'
+import {useRoom} from '../store/roomStore'
 const Canvass = () => {
 const canvaRef=useRef(null)
 const [strok,setStrok]=useState(3)
@@ -74,10 +75,13 @@ const stopDrawing = (e) => {
 }
 
 
-const choose=true;
+const choose=false;
+const isPlaying=true;
+
+const room=useRoom()
   return (
     <div className="w-full h-full flex items-center justify-center" style={{ maxWidth: '100%', maxHeight: '100%' }}>
-      {choose?<WordGuess/>:<canvas ref={canvaRef} onMouseDown={startDrawing} onMouseUp={stopDrawing} onMouseMove={draw} className="w-full h-full bg-white" style={{ maxWidth: '900px', maxHeight: '600px' }}></canvas>}
+      {room.hostId===room.sktId && !room.isPlaying?<Start/>:room?.drawerId===room?.sktId && room?.isChoosing?<WordGuess/>:<canvas ref={canvaRef} onMouseDown={startDrawing} onMouseUp={stopDrawing} onMouseMove={draw} className="w-full h-full bg-white" style={{ maxWidth: '900px', maxHeight: '600px' }}></canvas>}
     </div>
   )
 }

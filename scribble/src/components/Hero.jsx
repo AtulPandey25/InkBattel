@@ -19,6 +19,10 @@ useEffect(()=>{
     socket.on("player-joined",({roomId, playerDetail, socketId, rooom})=>{
       room?.setPlayers(rooom.players)
       room?.setRoomId(roomId)
+      room?.setHostId(rooom.hostId);
+      if(room?.drawWord.trim()=="" && rooom.guessWord.trim()!=""){
+        room?.setDrawWord(rooom.guessWord)
+      }
     })
 
   },[])

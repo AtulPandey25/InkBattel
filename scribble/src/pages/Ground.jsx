@@ -1,5 +1,6 @@
 import React, { useState,useEffect, useRef } from 'react'
 import Canvass from '../components/Canvas'
+import Start from '../components/Start'
 import {useRoom} from '../store/roomStore'
 import socket from "../utilities/socket"
 import {exitRoom} from "../services/socket.services.js"
@@ -41,6 +42,16 @@ const PlayGround = () => {
       console.log(meessage)
       room?.setMessages(meessage)
     })
+
+    socket.on("round-started",({roomId,players,drawerId})=>{
+      room?.setDrawerId(drawerId)
+      if(drawerId===room?.sktId) room?.setIsChoosing(true)
+    })
+
+    socket.on("guess-word",({roomId,rooom,word})=>{
+      room.setDrawWord(word)
+      console.log(word)
+    })
   })
 
   useEffect(() => {
@@ -66,12 +77,20 @@ const copyLink=async (roomId)=>{
 
 const sendMessages=(roomId,message)=>{
   try {
-    sendMessage(roomId,message)
+    console.log(room?.drawWord)
+    if(message.trim()!="" && message==room?.drawWord){
+      toast.success("You guessed It right !!!")
+    }
+    else{
+      sendMessage(roomId,message)
+    }
   } catch (error) {
     console.log(error)
     toast.error("Failed to send message")
   }
 }
+
+
 
   return (
     <div className="w-screen h-screen bg-gray-100 flex flex-col overflow-hidden">

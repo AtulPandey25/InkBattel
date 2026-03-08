@@ -28,11 +28,16 @@ const CreateRoom = () => {
       room?.setRoomId(roomId)
       // Set socket ID to YOUR OWN socket ID from socket.io client
       room?.setSktId(socket.id)
+      room?.setHostId(rooom.hostId);
+      room?.setIsPlaying(false);
       console.log(roomId)
       navigate("/ground")
     })
 
   })
+
+
+
   const createRoomm = async (playerDetail) => {
     try {
       if(roomName.trim()==""){

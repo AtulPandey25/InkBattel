@@ -46,3 +46,11 @@ export const gameBegin=(roomId)=>{
         console.log(error)
     }
 }
+
+export const drawWord=(roomId,word)=>{
+    try{
+        socket.emit("draw-word",{roomId,word})
+    }catch(error){
+        console.log(error)
+    }
+}

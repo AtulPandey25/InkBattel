@@ -1,6 +1,6 @@
 const {Server} = require("socket.io")
 const http =require('http')
-const {createRoom,joinRoom,exitRoom,sendMessage,gameStart}=require("../controller/room.controller.js")
+const {createRoom,joinRoom,exitRoom,sendMessage,gameStart,drawWord}=require("../controller/room.controller.js")
 const express=require("express")
 const app=express()
 
@@ -60,11 +60,24 @@ io.on("connection",(socket)=>{
     })
 
     socket.on("start-game",(roomId)=>{
-        const players=gameStart(roomId)
-        if(!players) return;
+        const {players,drawerId}=gameStart(roomId)
+        if(!players || !drawerId) return;
         console.log(players)
-        io.to(roomId).emit("round-started",{roomId,players})
+        io.to(roomId).emit("round-started",{roomId,players,drawerId})
     })
+
+    socket.on("draw-word",({roomId,word})=>{
+        const room=drawWord({roomId,word})
+        if(!room) return null
+        io.to(roomId).emit("guess-word",{roomId,rooom:room,word})
+    })
+
+
+
+
+
+
+
 
     // Handle disconnect - when user closes tab, loses connection, swipes back, etc.
     socket.on("disconnect",()=>{

@@ -9,13 +9,18 @@ lerna-debug.log*
 
 # Dependencies and build output
 node_modules/
+**/node_modules/
 dist/
+**/dist/
 build/
+**/build/
 dist-ssr/
 
 # Local config and secrets
 .env
 .env.*
+**/.env
+**/.env.*
 *.local
 !.env.example
 
