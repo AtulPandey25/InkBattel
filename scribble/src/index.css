@@ -1,0 +1,298 @@
+/* Paper Card Button Styles (from Rooms.jsx) */
+.pop-btn {
+  background: transparent;
+  border: 2px solid #333;
+  padding: 8px 18px;
+  min-width: 70px;
+  font-family: 'Gochi Hand', cursive;
+  font-size: 0.98rem;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 8px 18px 8px 14px;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.08);
+  transition: transform 0.18s cubic-bezier(.4,2,.6,1), background 0.2s, color 0.2s;
+  margin: 0 0.2rem;
+}
+/* Remove tilt/pop for CreateRoom bottom buttons */
+.pop-btn:hover {
+  background: #f7d794;
+  color: #222;
+  transform: none;
+  box-shadow: 4px 8px 18px rgba(0,0,0,0.18);
+  z-index: 2;
+}
+
+/* Mobile bottom button seamless join */
+@media (max-width: 768px) {
+  .mobile-bottom-btns {
+    gap: 0 !important;
+    padding: 0 !important;
+  }
+  .mobile-create-btn,
+  .mobile-home-btn {
+    margin: 0 !important;
+    border-radius: 0 !important;
+    border-right-width: 0 !important;
+    border-left-width: 0 !important;
+    border-top-width: 0 !important;
+    border-bottom-width: 0 !important;
+  }
+  .mobile-create-btn {
+    border-radius: 8px 0 0 0 !important;
+    border-right-width: 1.5px !important;
+  }
+  .mobile-home-btn {
+    border-radius: 0 0 8px 0 !important;
+    border-left-width: 1.5px !important;
+  }
+}
+@media (max-width: 600px) {
+  .paper-card > div {
+    flex-direction: column !important;
+    gap: 0.8rem !important;
+    align-items: stretch;
+  }
+  .pop-btn {
+    width: 100%;
+  }
+}
+@import "tailwindcss";
+
+body {
+  background-color: #2c3e50; /* Dark background to make the paper pop */
+  font-family: 'Gochi Hand', cursive;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  /* The Magic: Creating the paper lines */
+  background-color: #fdfdfd; /* Off-white paper color */
+  background-image: 
+    /* The Red Margin Line (Vertical) */
+    linear-gradient(90deg, transparent 79px, #abced4 79px, #abced4 81px, transparent 81px),
+    /* The Blue Lined Paper (Horizontal) */
+    linear-gradient(#eee .1em, transparent .1em);
+  background-size: 100% 1.5em; /* This controls the line spacing */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.paper-card {
+  background: #fff;
+  background-image: linear-gradient(#e1e1e1 1px, transparent 1px);
+  background-size: 100% 30px; /* Creates the "lined paper" look */
+  width: 350px;
+  max-width: 90vw;
+  padding: 40px 20px 20px 60px; /* Space on left for the "margin" line */
+  margin: 50px auto;
+  position: relative;
+  box-shadow: 5px 5px 15px rgba(0,0,0,0.3);
+  /* No tilt */
+  border: 1px solid #ddd;
+}
+
+/* Larger card specifically for Create Room page */
+.create-room-card {
+  width: 620px;
+  max-width: 90vw;
+  padding: 48px 32px 32px 80px; /* More space for larger card */
+}
+
+/* The Red Notebook Margin Line */
+.paper-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 45px;
+  height: 100%;
+  width: 2px;
+  background: rgba(255, 0, 0, 0.3);
+}
+
+/* Center card vertically on large screens */
+@media (min-width: 769px) {
+  .create-room-container {
+    min-height: calc(100vh - 120px);
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding-left: 6vw;
+    padding-top: 40px;
+  }
+  .create-room-heading {
+    position: relative;
+    margin-left: 0;
+    margin-top: 0;
+    font-size: 2rem;
+  }
+}
+
+h1 { font-size: 2.5rem; margin-bottom: 20px; color: #333; }
+
+input {
+  border: none;
+  border-bottom: 2px dashed #555;
+  background: transparent;
+  font-family: 'Gochi Hand', cursive;
+  font-size: 1.5rem;
+  width: 90%;
+  outline: none;
+}
+
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.avatar-item {
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 5px;
+  text-align: center;
+  transition: transform 0.2s;
+}
+
+/* Pencil-style circle for the selected character */
+.avatar-item.selected {
+  outline: 3px solid #3498db;
+  border-radius: 50% 40% 60% 45%; /* Irregular circle */
+  transform: scale(1.1);
+}
+
+.draw-btn {
+  margin-top: 30px;
+  background: transparent;
+  border: 3px solid #333;
+  padding: 10px 20px;
+  font-family: 'Gochi Hand', cursive;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 5px 15px 5px 10px; /* Messy border radius */
+}
+
+.draw-btn:hover {
+  background: #333;
+  color: #fff;
+}
+
+.word-guess-shell {
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+
+.word-guess-card {
+  width: 560px;
+  max-width: 95vw;
+  margin: 0;
+  padding-top: 34px;
+}
+
+.word-guess-kicker {
+  margin: 0;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.word-guess-title {
+  margin: 4px 0 8px;
+  font-size: 2rem;
+  line-height: 1.1;
+  color: #111827;
+}
+
+.word-guess-subtitle {
+  margin: 0 0 22px;
+  color: #374151;
+  font-size: 1.05rem;
+}
+
+.word-guess-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  gap: 0.8rem;
+}
+
+.word-option {
+  border: 2px dashed #334155;
+  background: #fffef5;
+  color: #1f2937;
+  border-radius: 14px 20px 14px 18px;
+  min-height: 86px;
+  font-family: 'Gochi Hand', cursive;
+  font-size: 1.55rem;
+  text-transform: capitalize;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.08);
+}
+
+.word-option:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+  background: #fff9db;
+}
+
+.word-option.selected {
+  background: #dcfce7;
+  border-style: solid;
+  border-color: #15803d;
+  box-shadow: 0 8px 16px rgba(21, 128, 61, 0.2);
+}
+
+.word-guess-footer {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.word-guess-picked {
+  color: #374151;
+  font-size: 1rem;
+}
+
+.word-guess-confirm {
+  margin-top: 0;
+  min-width: 130px;
+}
+
+.word-guess-confirm:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  background: transparent;
+  color: #111827;
+}
+
+@media (max-width: 640px) {
+  .word-guess-card {
+    width: 100%;
+    padding: 24px 14px 18px 44px;
+  }
+
+  .word-guess-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .word-option {
+    min-height: 70px;
+    font-size: 1.4rem;
+  }
+
+  .word-guess-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .word-guess-confirm {
+    width: 100%;
+  }
+}

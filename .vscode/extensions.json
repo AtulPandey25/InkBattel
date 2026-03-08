@@ -1,0 +1,45 @@
+{
+  "recommendations": [
+    // Essential for React development
+    "dsznajder.es7-react-js-snippets",
+    
+    // Code formatting
+    "esbenp.prettier-vscode",
+    
+    // Linting
+    "dbaeumer.vscode-eslint",
+    
+    // Path autocomplete
+    "christian-kohler.path-intellisense",
+    
+    // Auto import
+    "steoates.autoimport",
+    
+    // Better syntax highlighting
+    "mgmcdermott.vscode-language-babel",
+    
+    // Git integration
+    "eamodio.gitlens",
+    
+    // Tailwind CSS IntelliSense
+    "bradlc.vscode-tailwindcss",
+    
+    // Auto Close Tag
+    "formulahendry.auto-close-tag",
+    
+    // Auto Rename Tag
+    "formulahendry.auto-rename-tag",
+    
+    // Better comments
+    "aaron-bond.better-comments",
+    
+    // Error Lens (shows errors inline)
+    "usernamehw.errorlens",
+    
+    // Import Cost (shows package size)
+    "wix.vscode-import-cost",
+    
+    // Console Ninja (better console.log)
+    "wallabyjs.console-ninja"
+  ]
+}
