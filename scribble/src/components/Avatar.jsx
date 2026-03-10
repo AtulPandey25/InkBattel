@@ -2,7 +2,7 @@ import React from 'react'
 
 const Avatar = ({colourr,eyee,smilee}) => {
   return (
-    <div className="flex  flex-col justify-center items-center">
+    <div className="flex flex-col justify-center items-center">
       <div className={`w-15 h-15 ${colourr} border-4 border-black rounded-[50%] `}>
             <div className="flex flex-col justify-center items-center">
               <div className="flex justify-center items-center gap-4 mt-3">
@@ -16,5 +16,4 @@ const Avatar = ({colourr,eyee,smilee}) => {
     </div>
   )
 }
-
 export default Avatar

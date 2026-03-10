@@ -10,10 +10,10 @@ import toast from "react-hot-toast"
 const CreateRoom = () => {
   const [numPlayers, setNumPlayers] = useState(10);
   const [numRounds, setNumRounds] = useState(3);
-  const [hints, setHints] = useState(1);
+  const [hints, setHints] = useState(2);
   const [roomName, setRoomName] = useState("");
   const [drawTime, setDrawTime] = useState(80);
-  const [wordCount, setWordCount] = useState(1);
+  const [wordCount, setWordCount] = useState(3);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -30,7 +30,11 @@ const CreateRoom = () => {
       room?.setSktId(socket.id)
       room?.setHostId(rooom.hostId);
       room?.setIsPlaying(false);
+      room?.setRound(rooom.round);
+      room?.setTimer(rooom.settings.drawTime)
       console.log(roomId)
+
+      room?.setRoomDetail(rooom)
       navigate("/ground")
     })
 
@@ -54,7 +58,7 @@ const CreateRoom = () => {
         }
       };
       await createRoom(roomSettings, playerDetail);
-       console.log("crwe")
+      console.log("crwe")
     } catch(error) {
       console.log(error);
     }

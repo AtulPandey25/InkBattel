@@ -13,7 +13,15 @@ export const useRoom = create((set) => ({
   drawWord:"",
   isChoosing:false,
   isPlaying:false,
-  
+  guessed:false,
+  timer:0,
+  roomDetail:{},
+  round:0,
+  words:[],
+  verify:false,
+  guessedPlayers:[],
+  displayScore:false,
+
   setPlayers: (players) => set({ players }),
   setSettings: (settings) => set({ settings }),
   setRoomId: (roomId) => set({ roomId }),
@@ -26,18 +34,37 @@ export const useRoom = create((set) => ({
   setIsPlaying: (isPlaying) => set({ isPlaying }),
   setIsChoosing: (isChoosing) => set({ isChoosing }),
   setDrawWord: (drawWord) => set({drawWord}),
-   
-  
+  setGuessed: (guessed) => set({guessed}),
+  setTimer: (timer)=>set({timer}),
+  setRoomDetail:(roomDetail)=>set({roomDetail}),
+  setRound:(round)=>set({round}),
+  setWords:(words)=>set({words}),
+  setVerify:(verify)=>set({verify}),
+  setGuessedPlayers:(guessedPlayers)=>set({guessedPlayers}),
+  setDisplayScore:(displayScore)=>set({displayScore}),
+
+
   resetRoom: () => set({
     players: [],
     settings: {},
     roomId: "",
     roomName: "",
-    messages :[],
-    myDetail :[],
+    messages: [],
+    myDetail: null,
     sktId:"",
     hostId:"",
     drawerId:"",
     drawWord:"",
+    isChoosing: false,
+    isPlaying: false,
+    guessed: false,
+    timer:0,
+    roomDetail: {},
+    round:0,
+    words:[],
+    verify: false,
+    guessedPlayers:[],
+    displayScore:false,
+    
   })
 }))

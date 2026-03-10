@@ -20,6 +20,9 @@ useEffect(()=>{
       room?.setPlayers(rooom.players)
       room?.setRoomId(roomId)
       room?.setHostId(rooom.hostId);
+      room?.setRoomDetail(rooom)
+      room?.setRound(rooom.round);
+      room?.setTimer(rooom.settings.drawTime)
       if(room?.drawWord.trim()=="" && rooom.guessWord.trim()!=""){
         room?.setDrawWord(rooom.guessWord)
       }
@@ -68,7 +71,7 @@ const colours=[
   "bg-brown-600",
   "bg-yellow-600",
   "bg-purple-600",
-  "bg-cyan-600" // new colour
+  "bg-cyan-600"
 ]
 
 const [sm,setSm]=useState(0)

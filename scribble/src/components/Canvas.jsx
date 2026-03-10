@@ -1,6 +1,7 @@
 import React, { useLayoutEffect,useState,useRef } from 'react'
 import WordGuess from "../components/WordGuess.jsx"
 import Start from '../components/Start'
+import Score from '../components/Score'
 import {useRoom} from '../store/roomStore'
 const Canvass = () => {
 const canvaRef=useRef(null)
@@ -74,9 +75,6 @@ const stopDrawing = (e) => {
   ctx.closePath();
 }
 
-
-const choose=false;
-const isPlaying=true;
 
 const room=useRoom()
   return (

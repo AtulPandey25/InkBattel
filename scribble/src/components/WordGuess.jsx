@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {useRoom} from "../store/roomStore.jsx"
-import {drawWord} from "../services/socket.services.js"
+import {drawWord,manageTimer} from "../services/socket.services.js"
 import toast from "react-hot-toast"
 const words = ['apple', 'mango', 'banana'];
 
@@ -15,7 +15,9 @@ const WordGuess = () => {
           return toast.error("Please Select the Word")
        }
        drawWord(roomId,word)
-       room.setIsChoosing(false)
+       manageTimer(roomId)
+       room?.setIsChoosing(false)
+
     }catch(error){
         console.log(error)
         toast.error("Internal Server Error")
@@ -31,7 +33,7 @@ const WordGuess = () => {
         </p>
 
         <div className="word-guess-grid" role="listbox" aria-label="Word choices">
-          {words.map((word, index) => {
+          {room?.words.map((word, index) => {
             const isSelected = selectedWord === word;
 
             return (

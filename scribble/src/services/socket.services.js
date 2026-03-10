@@ -54,3 +54,27 @@ export const drawWord=(roomId,word)=>{
         console.log(error)
     }
 }
+
+export const updateScore=(roomId,score)=>{
+    try{
+        socket.emit("update-score",{roomId,socketId:socket.id,score})
+    }catch(error){
+        console.log(error)
+    }
+}
+
+export const manageTimer=(roomId)=>{
+    try{
+        socket.emit("timer-start",roomId)
+    }catch(error){
+        console.log(error)
+    }
+}
+
+export const verifyGuess=({roomId,message})=>{
+    try{
+        socket.emit("verify-guess",{roomId,message})
+    }catch(error){
+        console.log(error)
+    }
+}
