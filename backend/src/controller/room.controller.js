@@ -23,7 +23,7 @@ const createRoom=(socketId, playerDetail, roomSettings)=>{
                     isDrawing: false
                 }
             ],
-            notGessed:[],
+            notGuessed:[],
             guessed:[],
             settings: roomSettings.settings,
             messages:[],

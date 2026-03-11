@@ -55,9 +55,9 @@ io.on("connection",(socket)=>{
     socket.on("start-game",(roomId)=>{
         const gameData = gameStart(roomId)
         if(!gameData) return;
-        const {players,drawerId,round,words,guessed}=gameData
-        if(!players || !drawerId || !round || !words || !guessed) return;
-        io.to(roomId).emit("round-started",{roomId,players,drawerId,round,words,guessed})
+        const {players,drawerId,round,words,guessed,notGuessed}=gameData
+        if(!players || !drawerId || !round || !words) return;
+        io.to(roomId).emit("round-started",{roomId,players,drawerId,round,words,guessed,notGuessed})
     })
 
     socket.on("draw-word",({roomId,word})=>{
@@ -112,8 +112,10 @@ io.on("connection",(socket)=>{
         var {time,guessed,players,notGuessed}=timerUpdate(roomId)
         if(!time) return null 
         let roundEnding = false
+        time--;
         let timerInterval=setInterval(() => {
             if(roundEnding) return
+            
             io.to(roomId).emit("update-time",({roomId,time}))
             time--;
             if(time<0 || players.length===guessed.length){

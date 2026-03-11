@@ -44,7 +44,7 @@ export const useRoom = create((set) => ({
   setVerify:(verify)=>set({verify}),
   setGuessedPlayers:(guessedPlayers)=>set({guessedPlayers}),
   setDisplayScore:(displayScore)=>set({displayScore}),
-  setNotGuessedPlayers:(notGuessedPlayers)=>{(notGuessedPlayers)},
+  setNotGuessedPlayers:(notGuessedPlayers)=>set({ notGuessedPlayers }),
 
   resetRoom: () => set({
     players: [],

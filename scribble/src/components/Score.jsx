@@ -41,11 +41,11 @@ const Score = ({ notGuessedPlayers=[],guessedPlayers = [], correctWord = '' }) =
                 className="flex items-center justify-between rounded-md bg-white/70 px-2 py-1"
               >
                 <div className="flex min-w-0 items-center gap-3">
-                  <span className="text-sm font-bold text-black/70">#{index + 1}</span>
+                  <span className="text-sm font-bold text-black/70">#{index + 1+guessedPlayers.length}</span>
                   <span className="truncate text-lg font-extrabold text-black">{player?.name || 'Player'}</span>
                 </div>
                 <span className="shrink-0 rounded-md bg-red-600 px-2.5 py-0.5 text-sm font-extrabold text-white">
-                  {player?.scoreGained ?? player?.score ?? 0}
+                  {0}
                 </span>
               </div>
             ))}
