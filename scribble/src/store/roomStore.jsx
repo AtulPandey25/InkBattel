@@ -21,6 +21,8 @@ export const useRoom = create((set) => ({
   verify:false,
   guessedPlayers:[],
   displayScore:false,
+  notGuessedPlayers:[],
+
 
   setPlayers: (players) => set({ players }),
   setSettings: (settings) => set({ settings }),
@@ -42,7 +44,7 @@ export const useRoom = create((set) => ({
   setVerify:(verify)=>set({verify}),
   setGuessedPlayers:(guessedPlayers)=>set({guessedPlayers}),
   setDisplayScore:(displayScore)=>set({displayScore}),
-
+  setNotGuessedPlayers:(notGuessedPlayers)=>{(notGuessedPlayers)},
 
   resetRoom: () => set({
     players: [],
@@ -65,6 +67,6 @@ export const useRoom = create((set) => ({
     verify: false,
     guessedPlayers:[],
     displayScore:false,
-    
+    notGuessedPlayers:[],
   })
 }))

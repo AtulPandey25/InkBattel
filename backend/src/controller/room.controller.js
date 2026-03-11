@@ -23,6 +23,7 @@ const createRoom=(socketId, playerDetail, roomSettings)=>{
                     isDrawing: false
                 }
             ],
+            notGessed:[],
             guessed:[],
             settings: roomSettings.settings,
             messages:[],
@@ -108,6 +109,7 @@ const gameStart=(roomId)=>{
         if(!room) return null
         if(room.players.length===0) return null
         room.guessed=[];
+        room.notGuessed=[...room.players]
         if(!room.isPlaying){
             room.isPlaying = true
             room.choose = 0
@@ -129,8 +131,12 @@ const gameStart=(roomId)=>{
         const currentDrawer = room.players[room.choose]
         const words=randomWords(room.settings.wordCount)
         if(!currentDrawer) return null
-
-        return {players:room.players,drawerId:currentDrawer.socketId,round:room.round,totalRounds:room.settings.numRounds,words:words,guessed:room.guessed};
+        room.notGuessed.forEach((player,index)=>{
+            if(player.socketId===currentDrawer.socketId){
+                room.notGuessed.splice(index,1)
+            }
+        })
+        return {players:room.players,drawerId:currentDrawer.socketId,round:room.round,totalRounds:room.settings.numRounds,words:words,guessed:room.guessed,notGuessed:room.notGuessed};
     }
     catch(error){
         console.log(error)
@@ -164,6 +170,12 @@ const updateScore=({roomId,socketId,score})=>{
                      scoreGained:score,
                      name:player.name,
                 })
+                room.notGuessed.forEach((player,index)=>{
+                    if(player.socketId===socketId){
+                        room.notGuessed.splice(index,1)
+                    }
+                }
+                )
             }
         });
         return room
@@ -177,7 +189,7 @@ const timerUpdate=(roomId)=>{
      try{
         const room=rooms.get(roomId)
         if(!room) return null
-        return {time:room.settings.drawTime,guessed:room.guessed,players:room.players}
+        return {time:room.settings.drawTime,guessed:room.guessed,players:room.players,notGuessed:room.notGuessed}
     }catch(error){
         console.log(error)
         return null

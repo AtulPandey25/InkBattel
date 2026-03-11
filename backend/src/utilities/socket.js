@@ -1,6 +1,7 @@
 const {Server} = require("socket.io")
 const http =require('http')
 const {createRoom,joinRoom,exitRoom,sendMessage,gameStart,drawWord,updateScore,timerUpdate,deleteRoom,verifyGuess,getRoundScore}=require("../controller/room.controller.js")
+const {rooms}=require('../model/room.model.js')
 const express=require("express")
 const app=express()
 
@@ -81,28 +82,44 @@ io.on("connection",(socket)=>{
 
     const roundEnd=(roomId,timerInterval)=>{
         clearInterval(timerInterval)
-        const gameData = gameStart(roomId)
-        if(!gameData) return;
-        const {players,drawerId,round,totalRounds,words,guessed}=gameData
-        if(!players || !drawerId || !round || !words || !guessed) return null;
-        if(round>totalRounds){
-            const room=deleteRoom(roomId)
-            if(!room) return null
-            io.to(roomId).emit("game-ended",{roomId:room.roomId,guessed})
-        }
-        else{
-            io.to(roomId).emit("round-started",{roomId,players,drawerId,round,words,guessed})
-        }
+        const currentRoom = rooms.get(roomId)
+        if(!currentRoom) return null
+
+        io.to(roomId).emit("round-ended",{
+            roomId,
+            correctWord: currentRoom.guessWord,
+            guessed: currentRoom.guessed,
+            notGuessed:currentRoom.notGuessed
+        })
+
+        setTimeout(() => {
+            const gameData = gameStart(roomId)
+            if(!gameData) return;
+            const {players,drawerId,round,totalRounds,words,guessed,notGuessed}=gameData
+            if(!players || !drawerId || !round || !words || !guessed || !notGuessed) return null;
+            if(round>totalRounds){
+                const room=deleteRoom(roomId)
+                if(!room) return null
+                io.to(roomId).emit("game-ended",{roomId,guessed,notGuessed})
+            }
+            else{
+                io.to(roomId).emit("round-started",{roomId,players,drawerId,round,words,guessed,notGuessed})
+            }
+        }, 5000)
     }
 
     socket.on("timer-start",(roomId)=>{
-        var {time,guessed,players}=timerUpdate(roomId)
+        var {time,guessed,players,notGuessed}=timerUpdate(roomId)
         if(!time) return null 
+        let roundEnding = false
         let timerInterval=setInterval(() => {
+            if(roundEnding) return
             io.to(roomId).emit("update-time",({roomId,time}))
             time--;
-            if(time<0) roundEnd(roomId,timerInterval)
-            if(players.length===guessed.length) roundEnd(roomId,timerInterval)
+            if(time<0 || players.length===guessed.length){
+                roundEnding = true
+                roundEnd(roomId,timerInterval)
+            }
         }, 1000);
     })
 

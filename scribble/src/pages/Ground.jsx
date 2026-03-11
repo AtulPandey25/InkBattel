@@ -11,9 +11,11 @@ import { useDispatch } from 'react-redux'
 import { createRooom } from '../features/userDetail'
 import Avatar from "../components/Avatar.jsx"
 import {getScribbleWord} from "../utilities/scribbleWord.js"
+import Score from '../components/Score.jsx'
 const PlayGround = () => {
   const room = useRoom()
   const [message, setMessage] = useState('')
+  const [correctWord, setCorrectWord] = useState('')
   const messagesEndRefDesktop = useRef(null)
   const messagesEndRefMobile = useRef(null)
   const playerEndRef = useRef(null)
@@ -37,8 +39,6 @@ const PlayGround = () => {
   }, [])
 
 
-  
-
   useEffect(()=>{
     socket.on("player-exited",({roomId,rooom,socketId})=>{
       room.setPlayers(rooom.players)
@@ -50,15 +50,24 @@ const PlayGround = () => {
       room?.setMessages(meessage)
     })
 
-    socket.on("round-started",({roomId,players,drawerId,round,words,guessed})=>{
+    socket.on("round-started",async ({roomId,players,drawerId,round,words,guessed,notGuessed})=>{
       room?.setDrawerId(drawerId)
       room?.setRound(round)
       room?.setWords(words)
       room?.setGuessedPlayers(guessed)
+      room?.setNotGuessedPlayers(notGuessed)
       room?.setGuessed(false)
       room?.setDrawWord("")
-      // scoreDisplay(room,drawerId,guessed)
+      room?.setDisplayScore(false)
       if(drawerId===room?.sktId) room?.setIsChoosing(true)
+    })
+
+    socket.on("round-ended",({roomId,correctWord,guessed,notGuessed})=>{
+      room?.setGuessedPlayers(guessed || [])
+      setCorrectWord(correctWord || "")
+      room?.setDisplayScore(true)
+      room?.setNotGuessedPlayers(notGuessed)
+      room?.setIsChoosing(false)
     })
 
     socket.on("guess-word",({roomId,rooom,word})=>{
@@ -78,6 +87,10 @@ const PlayGround = () => {
     socket.on("game-ended",({roomId})=>{
       dispatch(createRooom(false))
       room?.setMessages([])
+      room?.setDisplayScore(false)
+      room?.setIsChoosing(false)
+      room?.setGuessed(false)
+      room?.setDrawWord("")
       navigate("/")
     })
     socket.on("verified",({rooom,res})=>{
@@ -88,7 +101,19 @@ const PlayGround = () => {
       room?.setRoomDetail(rooom)
       room?.setPlayers(rooom.players)
     })
-  })
+
+    return ()=>{
+      socket.off("player-exited")
+      socket.off("new-message")
+      socket.off("round-started")
+      socket.off("round-ended")
+      socket.off("guess-word")
+      socket.off("update-time")
+      socket.off("game-ended")
+      socket.off("verified")
+      socket.off("score-updated")
+    }
+  },[])
 
   useEffect(() => {
     messagesEndRefDesktop.current?.scrollIntoView({ behavior: 'smooth' })
@@ -135,7 +160,7 @@ const sendMessages=(roomId,message)=>{
 
 
   return (
-    <div className="w-screen h-screen bg-gray-100 flex flex-col overflow-hidden">
+    <div className="relative w-screen h-screen bg-gray-100 flex flex-col overflow-hidden">
       {/* Top Navbar */}
       <div className="w-full h-20 bg-white border-b-4 border-gray-300 flex items-center justify-between px-6 shadow-md">
         {/* Left: Clock and Round */}
@@ -192,9 +217,10 @@ const sendMessages=(roomId,message)=>{
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-lg font-bold text-gray-700">#{index + 1}</span>
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-bold">
+                      {/* <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-bold">
                         {player?.name?.charAt(0).toUpperCase() || 'P'}
-                      </div>
+                      </div> */}
+                      <div><Avatar className="w-15 h-15" colourr={player?.colour} eyee={player?.eyes} smilee={player?.smile} /></div>
                       <span className="font-semibold text-gray-800">{player?.name || 'Player'}</span>
                     </div>
                     <span className="text-sm font-bold text-green-600">{player?.score}</span>
@@ -292,7 +318,7 @@ const sendMessages=(roomId,message)=>{
                         {/* <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-xs font-bold">
                           {player?.name?.charAt(0).toUpperCase() || 'P'}
                         </div> */}
-                        <div            ><Avatar className="w-15 h-15" colourr={player?.colour} eyee={player?.eyes} smilee={player?.smile} /></div>
+                        <div><Avatar className="w-15 h-15" colourr={player?.colour} eyee={player?.eyes} smilee={player?.smile} /></div>
                         <span className="font-semibold text-gray-800 truncate">{player?.name || 'Player'}</span>
                       </div>
                       <span className="text-xs font-bold text-green-600">{player?.score}</span>
@@ -363,6 +389,12 @@ const sendMessages=(roomId,message)=>{
           </div>
         </div>
       </div>
+
+      {room?.displayScore && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-3">
+          <Score notGuessedPlayers={room?.notGuessedPlayers} guessedPlayers={room?.guessedPlayers || []} correctWord={correctWord} />
+        </div>
+      )}
     </div>
   )
 }

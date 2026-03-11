@@ -1,36 +1,57 @@
 import React from 'react'
 
-const Score = ({ guessedPlayers = [], correctWord = '' }) => {
+const Score = ({ notGuessedPlayers=[],guessedPlayers = [], correctWord = '' }) => {
   return (
-    <div className="w-full max-w-2xl overflow-hidden rounded-2xl border-2 border-slate-200 bg-white shadow-2xl">
-      <div className="bg-linear-to-r from-cyan-500 to-blue-600 px-5 py-4 text-white">
-        <p className="text-xs font-semibold uppercase tracking-wider opacity-90">Turn Result</p>
-        <h2 className="mt-1 text-xl font-black md:text-2xl">
-          Correct word was <span className="underline decoration-cyan-200">{correctWord || '---'}</span>
+    <div className="paper-card word-guess-card w-full" style={{ maxWidth: '760px', margin: 0, paddingTop: '28px' }}>
+      <div className="mb-3 text-center">
+        <h2 className="mt-1 text-2xl font-black leading-tight text-black md:text-3xl">
+          Correct word was <span className="text-green-600">{correctWord || '---'}</span>
         </h2>
+        <p className="mt-1 text-sm font-semibold text-black/70">Round Scoreboard</p>
       </div>
 
-      <div className="max-h-[55vh] overflow-y-auto px-4 py-3 md:px-5">
-        <div className="mb-2 flex items-center justify-between border-b border-slate-200 pb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
-          <span>Name</span>
-          <span>Score</span>
-        </div>
-
+      <div className="max-h-[52vh] overflow-y-auto pt-2">
         {guessedPlayers.length === 0 ? (
-          <p className="py-6 text-center text-sm font-semibold text-slate-500">No players guessed this turn.</p>
+          <p className="py-6 text-center text-sm font-semibold text-black">No players guessed this turn.</p>
         ) : (
-          guessedPlayers.map((player, index) => (
-            <div
-              key={player?.socketId || `${player?.name || 'player'}-${index}`}
-              className="mb-2 flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5"
-            >
-              <span className="truncate pr-3 text-sm font-semibold text-slate-800">{player?.name || 'Player'}</span>
-              <span className="shrink-0 rounded-lg bg-slate-900 px-3 py-1 text-sm font-extrabold text-cyan-300">
-                {player?.score ?? 0}
-              </span>
-            </div>
-          ))
+          <div className="mx-auto w-full max-w-md space-y-2">
+            {guessedPlayers.map((player, index) => (
+              <div
+                key={player?.socketId || `${player?.name || 'player'}-${index}`}
+                className="flex items-center justify-between rounded-md bg-white/70 px-2 py-1"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="text-sm font-bold text-black/70">#{index + 1}</span>
+                  <span className="truncate text-lg font-extrabold text-black">{player?.name || 'Player'}</span>
+                </div>
+                <span className="shrink-0 rounded-md bg-green-600 px-2.5 py-0.5 text-sm font-extrabold text-white">
+                  +{player?.scoreGained ?? player?.score ?? 0}
+                </span>
+              </div>
+            ))}
+          </div>
         )}
+        {notGuessedPlayers.length === 0 ? (
+          <p className="py-6 text-center text-sm font-semibold text-black">Everyone Guessed.</p>
+        ) : (
+          <div className="mx-auto w-full max-w-md space-y-2">
+            {notGuessedPlayers.map((player, index) => (
+              <div
+                key={player?.socketId || `${player?.name || 'player'}-${index}`}
+                className="flex items-center justify-between rounded-md bg-white/70 px-2 py-1"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="text-sm font-bold text-black/70">#{index + 1}</span>
+                  <span className="truncate text-lg font-extrabold text-black">{player?.name || 'Player'}</span>
+                </div>
+                <span className="shrink-0 rounded-md bg-red-600 px-2.5 py-0.5 text-sm font-extrabold text-white">
+                  {player?.scoreGained ?? player?.score ?? 0}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
       </div>
     </div>
   )
