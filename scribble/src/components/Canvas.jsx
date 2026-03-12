@@ -77,9 +77,30 @@ const stopDrawing = (e) => {
 
 
 const room=useRoom()
+const isHost = room?.hostId === room?.sktId
+const isDrawer = room?.drawerId === room?.sktId
+const currentDrawer = room?.players?.find((player) => player.socketId === room?.drawerId)
+const drawerName = currentDrawer?.name || 'A player'
+
+const renderStatusCard = (title, subtitle) => (
+  <div className="flex w-full max-w-xl flex-col items-center justify-center rounded-2xl border-4 border-gray-300 bg-white px-8 py-12 text-center shadow-xl">
+    <p className="text-sm font-black uppercase tracking-[0.3em] text-gray-500">Scribble</p>
+    <h2 className="mt-4 text-3xl font-black text-gray-800 md:text-4xl">{title}</h2>
+    <p className="mt-3 text-base font-semibold text-gray-600 md:text-lg">{subtitle}</p>
+  </div>
+)
+
   return (
     <div className="w-full h-full flex items-center justify-center" style={{ maxWidth: '100%', maxHeight: '100%' }}>
-      {room.hostId===room.sktId && !room.isPlaying?<Start/>:room?.drawerId===room?.sktId && room?.isChoosing?<WordGuess/>:<canvas ref={canvaRef} onMouseDown={startDrawing} onMouseUp={stopDrawing} onMouseMove={draw} className="w-full h-full bg-white" style={{ maxWidth: '900px', maxHeight: '600px' }}></canvas>}
+      {!room?.isPlaying
+        ? (isHost
+            ? <Start/>
+            : renderStatusCard('Wait', 'Waiting for the host to start the game'))
+        : room?.isChoosing
+          ? (isDrawer
+              ? <WordGuess/>
+              : renderStatusCard('Get Ready', `${drawerName} is choosing the word`))
+          : <canvas ref={canvaRef} onMouseDown={startDrawing} onMouseUp={stopDrawing} onMouseMove={draw} className="w-full h-full bg-white" style={{ maxWidth: '900px', maxHeight: '600px' }}></canvas>}
     </div>
   )
 }

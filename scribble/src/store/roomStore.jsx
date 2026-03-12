@@ -6,7 +6,7 @@ export const useRoom = create((set) => ({
   roomId: "",
   roomName: "",
   messages: [],
-  myDetail: null,
+  myDetail: {},
   sktId: "",
   hostId:"",
   drawerId:"",
@@ -22,6 +22,8 @@ export const useRoom = create((set) => ({
   guessedPlayers:[],
   displayScore:false,
   notGuessedPlayers:[],
+  displayFinalScore:false,
+  hintsShown:0,
 
 
   setPlayers: (players) => set({ players }),
@@ -45,6 +47,9 @@ export const useRoom = create((set) => ({
   setGuessedPlayers:(guessedPlayers)=>set({guessedPlayers}),
   setDisplayScore:(displayScore)=>set({displayScore}),
   setNotGuessedPlayers:(notGuessedPlayers)=>set({ notGuessedPlayers }),
+  setDisplayFinalScore:(displayFinalScore)=>set({displayFinalScore}),
+  setHintsShown:(hintsShown)=>set({hintsShown}),
+
 
   resetRoom: () => set({
     players: [],
@@ -52,7 +57,7 @@ export const useRoom = create((set) => ({
     roomId: "",
     roomName: "",
     messages: [],
-    myDetail: null,
+    myDetail: {},
     sktId:"",
     hostId:"",
     drawerId:"",
@@ -68,5 +73,7 @@ export const useRoom = create((set) => ({
     guessedPlayers:[],
     displayScore:false,
     notGuessedPlayers:[],
+    displayFinalScore:false,
+    hintsShown:0,
   })
 }))

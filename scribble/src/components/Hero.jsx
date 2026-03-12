@@ -10,25 +10,49 @@ import socket from '../utilities/socket.js'
 import toast from "react-hot-toast"
 const Hero = () => {
 const room=useRoom()
+const navigate=useNavigate()
 
 useEffect(()=>{
     if (socket.id && !room?.sktId) {
       room?.setSktId(socket.id)
     }
-    
-    socket.on("player-joined",({roomId, playerDetail, socketId, rooom})=>{
+
+    const handlePlayerJoined = ({roomId, playerDetail, socketId, rooom})=>{
+      const currentDrawer = rooom.players?.[rooom.choose]
+      const phase = rooom.phase || (rooom.guessWord?.trim() ? "drawing" : (rooom.isPlaying ? "choosing" : "lobby"))
+      const isChoosing = phase === "choosing"
+      const isDrawing = phase === "drawing"
+
       room?.setPlayers(rooom.players)
       room?.setRoomId(roomId)
-      room?.setHostId(rooom.hostId);
+      room?.setMyDetail(playerDetail)
+      room?.setHostId(rooom.hostId)
       room?.setRoomDetail(rooom)
-      room?.setRound(rooom.round);
+      room?.setRound(rooom.round)
+      room?.setMessages(rooom.messages)
       room?.setTimer(rooom.settings.drawTime)
-      if(room?.drawWord.trim()=="" && rooom.guessWord.trim()!=""){
-        room?.setDrawWord(rooom.guessWord)
+      room?.setIsPlaying(Boolean(rooom.isPlaying))
+      room?.setDrawerId(currentDrawer?.socketId || "")
+      room?.setIsChoosing(isChoosing)
+      room?.setDrawWord(isDrawing ? rooom.guessWord : "")
+      if(socketId === socket.id){
+        navigate('/ground')
       }
-    })
+    }
 
-  },[])
+    const handleJoinFailed = ({message})=>{
+      toast.error(message || "Unable to join room")
+    }
+
+    socket.on("player-joined", handlePlayerJoined)
+    socket.on("join-room-failed", handleJoinFailed)
+
+    return ()=>{
+      socket.off("player-joined", handlePlayerJoined)
+      socket.off("join-room-failed", handleJoinFailed)
+    }
+
+  },[navigate, room])
   const {roomId}=useParams();
 
   const smile=[
@@ -133,8 +157,6 @@ const submit=(e)=>{
   }
 }
 
-const navigate=useNavigate()
-
 const joinRoomm=(roomId,playerDetail)=>{
   if(name.trim()==""){
     return toast.error("Please enter the name")
@@ -145,7 +167,6 @@ const joinRoomm=(roomId,playerDetail)=>{
   try{
     localStorage.setItem("userDetail", JSON.stringify({name,clr,eye,sm}));
     joinRoom(roomId,payload)
-    navigate('/ground')
   }catch(err){
     console.warn('Failed to save userDetail to localStorage', err);
   }

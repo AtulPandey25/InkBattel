@@ -1,6 +1,6 @@
 const {Server} = require("socket.io")
 const http =require('http')
-const {createRoom,joinRoom,exitRoom,sendMessage,gameStart,drawWord,updateScore,timerUpdate,deleteRoom,verifyGuess,getRoundScore}=require("../controller/room.controller.js")
+const {createRoom,joinRoom,exitRoom,sendMessage,gameStart,drawWord,updateScore,timerUpdate,deleteRoom,verifyGuess,getRoundScore,markRoundEnded}=require("../controller/room.controller.js")
 const {rooms}=require('../model/room.model.js')
 const express=require("express")
 const app=express()
@@ -16,6 +16,7 @@ const io=new Server(server,{
 
 
 const socketRooms = new Map();
+const roomTimers = new Map();
 
 io.on("connection",(socket)=>{
 
@@ -31,8 +32,22 @@ io.on("connection",(socket)=>{
     })
 
     socket.on("join-room",({roomId,playerDetail})=>{
+        const room = rooms.get(roomId)
+        if(!room){
+            socket.emit("join-room-failed",{message:"Room not found"})
+            return;
+        }
+
+        if(room.players.length >= room.settings.numPlayers){
+            socket.emit("join-room-failed",{message:"Max player limit reached"})
+            return;
+        }
+
         const rooom=joinRoom(socket,roomId,playerDetail)
-        if(!rooom) return;
+        if(!rooom){
+            socket.emit("join-room-failed",{message:"Unable to join room"})
+            return;
+        }
         socketRooms.set(socket.id, roomId) // Track which room this socket is in
         io.to(roomId).emit("player-joined",{roomId, playerDetail, socketId:socket.id,rooom})
     })
@@ -82,6 +97,11 @@ io.on("connection",(socket)=>{
 
     const roundEnd=(roomId,timerInterval)=>{
         clearInterval(timerInterval)
+        const trackedTimer = roomTimers.get(roomId)
+        if(trackedTimer){
+            clearInterval(trackedTimer)
+            roomTimers.delete(roomId)
+        }
         const currentRoom = rooms.get(roomId)
         if(!currentRoom) return null
 
@@ -91,12 +111,13 @@ io.on("connection",(socket)=>{
             guessed: currentRoom.guessed,
             notGuessed:currentRoom.notGuessed
         })
+        markRoundEnded(roomId)
 
         setTimeout(() => {
             const gameData = gameStart(roomId)
             if(!gameData) return;
             const {players,drawerId,round,totalRounds,words,guessed,notGuessed}=gameData
-            if(!players || !drawerId || !round || !words || !guessed || !notGuessed) return null;
+            if(!players || !drawerId || !round || !words) return null;
             if(round>totalRounds){
                 const room=deleteRoom(roomId)
                 if(!room) return null
@@ -109,20 +130,47 @@ io.on("connection",(socket)=>{
     }
 
     socket.on("timer-start",(roomId)=>{
-        var {time,guessed,players,notGuessed}=timerUpdate(roomId)
-        if(!time) return null 
+        const timerData = timerUpdate(roomId)
+        if(!timerData) return null
+        let {time}=timerData
+        if(!time) return null
+
+        const existingTimer = roomTimers.get(roomId)
+        if(existingTimer){
+            clearInterval(existingTimer)
+            roomTimers.delete(roomId)
+        }
+
         let roundEnding = false
         time--;
         let timerInterval=setInterval(() => {
             if(roundEnding) return
+
+            const room = rooms.get(roomId)
+            if(!room || room.phase !== "drawing"){
+                roundEnding = true
+                clearInterval(timerInterval)
+                roomTimers.delete(roomId)
+                return
+            }
             
             io.to(roomId).emit("update-time",({roomId,time}))
             time--;
-            if(time<0 || players.length===guessed.length){
+            if(time<0 || room.notGuessed.length===0){
                 roundEnding = true
                 roundEnd(roomId,timerInterval)
             }
+            if(time==room.settings.drawTime-20 || time==room.settings.drawTime-40 || time==room.settings.drawTime-50){
+                io.to.emit("show-hints")
+            }
         }, 1000);
+
+        roomTimers.set(roomId, timerInterval)
+    })
+
+
+    socket.on("guessed-message",({roomId,socketId,name})=>{
+        io.to.emit("guessed-edit",({roomId,socketId,name}))
     })
 
     // Handle disconnect - when user closes tab, loses connection, swipes back, etc.

@@ -15,6 +15,7 @@ const createRoom=(socketId, playerDetail, roomSettings)=>{
             round:1,
             guessWord:"",
             isPlaying:false,
+            phase:"lobby",
             players: [
                 {
                     ...playerDetail,
@@ -46,13 +47,25 @@ const joinRoom=(socket,roomId,playerDetail)=>{
         if(!room){
             return null
         }
+        if(room.players.length===room.settings.numPlayers){
+            return null
+        }
         socket.join(roomId)
-        room.players.push({
+        const joinedPlayer = {
             ...playerDetail,
             socketId: socket.id,
             score: 0,
             isDrawing: false
-        })
+        }
+        room.players.push(joinedPlayer)
+
+        // If a round is active (choosing/drawing), include late joiners in current guessers.
+        if(room.isPlaying && (room.phase === "choosing" || room.phase === "drawing")){
+            const currentDrawer = room.players[room.choose]
+            if(!currentDrawer || currentDrawer.socketId !== socket.id){
+                room.notGuessed.push(joinedPlayer)
+            }
+        }
         return room;
     } catch (error) {
         console.log(error)
@@ -72,6 +85,17 @@ const exitRoom=(roomId,socketId)=>{
         if(!player) return null
         const index=room.players.findIndex((p)=> p.socketId==socketId)
         room.players.splice(index,1)
+
+        const notGuessedIndex = room.notGuessed.findIndex((player)=>player.socketId==socketId)
+        if(notGuessedIndex!==-1){
+            room.notGuessed.splice(notGuessedIndex,1)
+        }
+
+        const guessedIndex = room.guessed.findIndex((player)=>player.socketId==socketId)
+        if(guessedIndex!==-1){
+            room.guessed.splice(guessedIndex,1)
+        }
+
         return room;
     }catch(error){
         console.log(error)
@@ -108,6 +132,7 @@ const gameStart=(roomId)=>{
         const room=rooms.get(roomId)
         if(!room) return null
         if(room.players.length===0) return null
+        room.guessWord=""
         room.guessed=[];
         room.notGuessed=[...room.players]
         if(!room.isPlaying){
@@ -123,10 +148,10 @@ const gameStart=(roomId)=>{
         }
         
 
+        room.phase = "choosing"
+
         room.players.forEach((player,index)=>{
-            if(index===room.choose){
-                player.isDrawing=true
-            }
+            player.isDrawing = index===room.choose
         })
         const currentDrawer = room.players[room.choose]
         const words=randomWords(room.settings.wordCount)
@@ -150,6 +175,7 @@ const drawWord=({roomId,word})=>{
         const room=rooms.get(roomId)
         if(!room) return null
         room.guessWord=word;
+        room.phase = "drawing"
         return room;
     }catch(error){
         console.log(error)
@@ -162,6 +188,11 @@ const updateScore=({roomId,socketId,score})=>{
     try{
         const room=rooms.get(roomId)
         if(!room) return null
+        if(room.phase !== "drawing") return room
+
+        const guesserIndex = room.notGuessed.findIndex((player)=>player.socketId===socketId)
+        if(guesserIndex===-1) return room
+
         room.players.forEach((player) => {
             if(player.socketId==socketId){
                 player.score=player.score+score
@@ -170,12 +201,7 @@ const updateScore=({roomId,socketId,score})=>{
                      scoreGained:score,
                      name:player.name,
                 })
-                room.notGuessed.forEach((player,index)=>{
-                    if(player.socketId===socketId){
-                        room.notGuessed.splice(index,1)
-                    }
-                }
-                )
+                room.notGuessed.splice(guesserIndex,1)
             }
         });
         return room
@@ -207,6 +233,22 @@ const deleteRoom=(roomId)=>{
     }
 }
 
+const markRoundEnded=(roomId)=>{
+    try{
+        const room=rooms.get(roomId)
+        if(!room) return null
+        room.phase = "scoring"
+        room.guessWord = ""
+        room.players.forEach((player)=>{
+            player.isDrawing = false
+        })
+        return room
+    }catch(error){
+        console.log(error)
+        return null
+    }
+}
+
 
 const verifyGuess=({roomId,message})=>{
      try{
@@ -231,4 +273,5 @@ const getRoundScore=(roomId)=>{
     }
 }
 
-module.exports={joinRoom,createRoom,exitRoom,sendMessage,gameStart,drawWord,updateScore,timerUpdate,deleteRoom,verifyGuess,getRoundScore}
+
+module.exports={joinRoom,createRoom,exitRoom,sendMessage,gameStart,drawWord,updateScore,timerUpdate,deleteRoom,verifyGuess,getRoundScore,markRoundEnded}

@@ -24,17 +24,15 @@ const CreateRoom = () => {
   useEffect(()=>{
     socket.on("room-created",({roomId,rooom,playerDetail,socketId})=>{
       room?.setPlayers(rooom.players)
-      console.log(rooom.players)
       room?.setRoomId(roomId)
-      // Set socket ID to YOUR OWN socket ID from socket.io client
       room?.setSktId(socket.id)
       room?.setHostId(rooom.hostId);
       room?.setIsPlaying(false);
       room?.setRound(rooom.round);
       room?.setTimer(rooom.settings.drawTime)
-      console.log(roomId)
-
+      room?.setMyDetail(playerDetail)
       room?.setRoomDetail(rooom)
+      room?.setMessages(rooom.messages)
       navigate("/ground")
     })
 

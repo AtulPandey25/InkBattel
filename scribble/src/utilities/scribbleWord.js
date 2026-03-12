@@ -1,6 +1,13 @@
 
-export const getScribbleWord=(word)=>{
-    return word.split("").map((char)=>char=== " " ? "\u00A0" : "_").join(" ")
+
+export const getScribbleWord=(word,room)=>{
+    return word.split("").map((char)=>{
+        if(char===" ") return " "
+        if(room?.hintsShown>0){
+
+        }
+        else return "_"
+    }).join(" ")
 }
 
 export const scoreDisplay=(drawerId,room,guessed)=>{

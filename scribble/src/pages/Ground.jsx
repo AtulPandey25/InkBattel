@@ -12,6 +12,7 @@ import { createRooom } from '../features/userDetail'
 import Avatar from "../components/Avatar.jsx"
 import {getScribbleWord} from "../utilities/scribbleWord.js"
 import Score from '../components/Score.jsx'
+import FinalScoreCard from '../components/FinalScoreCard.jsx'
 const PlayGround = () => {
   const room = useRoom()
   const [message, setMessage] = useState('')
@@ -24,6 +25,13 @@ const PlayGround = () => {
   const navigate=useNavigate()
   const dispatch = useDispatch()
 
+
+  const decideScore=()=>{
+    if(room?.guessedPlayers.length===0) return 200;
+    else if(room?.guessedPlayers.length===1) return 150;
+    else if(room?.guessedPlayers.length===2) return 100;
+    else return 50;
+  }
    useEffect(() => {
     return () => {
       if (room.roomId) {
@@ -40,17 +48,38 @@ const PlayGround = () => {
 
 
   useEffect(()=>{
-    socket.on("player-exited",({roomId,rooom,socketId})=>{
-      room.setPlayers(rooom.players)
-    })
+    const handlePlayerJoined = ({roomId, rooom})=>{
+      const currentDrawer = rooom.players?.[rooom.choose]
+      const phase = rooom.phase || (rooom.guessWord?.trim() ? "drawing" : (rooom.isPlaying ? "choosing" : "lobby"))
+      const isChoosing = phase === "choosing"
+      const isDrawing = phase === "drawing"
 
-    socket.on("new-message",({roomId,meessage,socketId})=>{
+      room?.setPlayers(rooom.players)
+      room?.setRoomId(roomId)
+      room?.setHostId(rooom.hostId)
+      room?.setRoomDetail(rooom)
+      room?.setRound(rooom.round)
+      room?.setTimer(rooom.settings.drawTime)
+      room?.setIsPlaying(Boolean(rooom.isPlaying))
+      room?.setDrawerId(currentDrawer?.socketId || "")
+      room?.setIsChoosing(isChoosing)
+      room?.setMessages(rooom.messages)
+      room?.setDrawWord(isDrawing ? rooom.guessWord : "")
+    }
+
+    const handlePlayerExited = ({rooom})=>{
+      room?.setPlayers(rooom.players)
+      room?.setRoomDetail(rooom)
+    }
+
+    const handleNewMessage = ({meessage})=>{
       console.log("Reached")
       console.log(meessage)
       room?.setMessages(meessage)
-    })
+    }
 
-    socket.on("round-started",async ({roomId,players,drawerId,round,words,guessed,notGuessed})=>{
+    const handleRoundStarted = async ({roomId,players,drawerId,round,words,guessed,notGuessed})=>{
+      room?.setIsPlaying(true)
       room?.setDrawerId(drawerId)
       room?.setRound(round)
       room?.setWords(words)
@@ -59,59 +88,87 @@ const PlayGround = () => {
       room?.setGuessed(false)
       room?.setDrawWord("")
       room?.setDisplayScore(false)
-      if(drawerId===room?.sktId) room?.setIsChoosing(true)
-    })
+      room?.setIsChoosing(true)
+    }
 
-    socket.on("round-ended",({roomId,correctWord,guessed,notGuessed})=>{
+    const handleRoundEnded = ({correctWord,guessed,notGuessed})=>{
       room?.setGuessedPlayers(guessed || [])
       setCorrectWord(correctWord || "")
       room?.setDisplayScore(true)
       room?.setNotGuessedPlayers(notGuessed || [])
       room?.setIsChoosing(false)
-    })
+    }
 
-    socket.on("guess-word",({roomId,rooom,word})=>{
-      // if(room?.sktId===room?.drawerId) 
-        room?.setDrawWord(word)
-    })
 
-    socket.on("update-time",({roomId,time})=>{
+
+
+
+    const handleGuessWord = ({word})=>{
+      room?.setDrawWord(word)
+      room?.setIsChoosing(false)
+    }
+
+    const handleUpdateTime = ({time})=>{
       if(time==0){
         room?.setGuessed(false)
         room?.setDrawWord("")
       }
       room?.setTimer(time)
+    }
 
-    })
+    const handleGameEnded = ()=>{
+      room?.setDisplayFinalScore(true)
+      setTimeout(() => {
+        dispatch(createRooom(false))
+        room?.setMessages([])
+        room?.setDisplayScore(false)
+        room?.setDisplayFinalScore(false)
+        room?.setIsPlaying(false)
+        room?.setIsChoosing(false)
+        room?.setGuessed(false)
+        room?.setDrawWord("")
+        navigate("/")
+      }, 5000)
+    }
 
-    socket.on("game-ended",({roomId})=>{
-      dispatch(createRooom(false))
-      room?.setMessages([])
-      room?.setDisplayScore(false)
-      room?.setIsChoosing(false)
-      room?.setGuessed(false)
-      room?.setDrawWord("")
-      navigate("/")
-    })
-    socket.on("verified",({rooom,res})=>{
+    const handleVerified = ({res})=>{
       room?.setVerify(res)
-    })
+    }
 
-    socket.on("score-updated",({roomId,rooom})=>{
+    const handleScoreUpdated = ({rooom})=>{
       room?.setRoomDetail(rooom)
       room?.setPlayers(rooom.players)
-    })
+      room?.setGuessedPlayers(rooom.guessed || [])
+      room?.setNotGuessedPlayers(rooom.notGuessed || [])
+    }
+
+
+    const handleHints=()=>{
+      room?.setHintsShown((prev)=>prev+1)
+    }
+
+    socket.on("player-joined", handlePlayerJoined)
+    socket.on("player-exited", handlePlayerExited)
+    socket.on("new-message", handleNewMessage)
+    socket.on("round-started", handleRoundStarted)
+    socket.on("round-ended", handleRoundEnded)
+    socket.on("guess-word", handleGuessWord)
+    socket.on("update-time", handleUpdateTime)
+    socket.on("game-ended", handleGameEnded)
+    socket.on("verified", handleVerified)
+    socket.on("score-updated", handleScoreUpdated)
 
     return ()=>{
-      socket.off("player-exited")
-      socket.off("new-message")
-      socket.off("round-started")
-      socket.off("round-ended")
-      socket.off("guess-word")
-      socket.off("update-time")
-      socket.off("game-ended")
-      socket.off("verified")
-      socket.off("score-updated")
+      socket.off("player-joined", handlePlayerJoined)
+      socket.off("player-exited", handlePlayerExited)
+      socket.off("new-message", handleNewMessage)
+      socket.off("round-started", handleRoundStarted)
+      socket.off("round-ended", handleRoundEnded)
+      socket.off("guess-word", handleGuessWord)
+      socket.off("update-time", handleUpdateTime)
+      socket.off("game-ended", handleGameEnded)
+      socket.off("verified", handleVerified)
+      socket.off("score-updated", handleScoreUpdated)
     }
   },[])
 
@@ -138,14 +195,14 @@ const copyLink=async (roomId)=>{
 
 const sendMessages=(roomId,message)=>{
   try {
-    console.log(room?.drawWord)
-    // await verifyGuess({roomId,message})
-    if(message.trim()!="" && room?.drawWord===message){
-      if(!room?.guessed)
+     if(message.trim()!="" && room?.drawWord===message){
+      if(room?.sktId===room?.drawerId) return toast.error("You are not elligible")
+      if(room?.sktId!==room?.drawerId && !room?.guessed)
         {toast.success("You guessed It right !!!")
         room?.setGuessed(true)
-        const score = room?.timer*2;
+        const score = decideScore();
         updateScore(roomId,score)
+        sendMessage(roomId,`${room?.myDetail.name} has guessed`)
       }
     }
     else{
@@ -156,6 +213,14 @@ const sendMessages=(roomId,message)=>{
     toast.error("Failed to send message")
   }
 }
+
+const isDrawer = room?.drawerId === room?.sktId
+const hasSelectedWord = room?.drawWord?.trim() !== ""
+const navbarWord = !hasSelectedWord
+  ? "Waiting"
+  : (isDrawer || room?.guessed || room?.displayScore)
+    ? room?.drawWord
+    : getScribbleWord(room?.drawWord,room)
 
 
 
@@ -179,7 +244,7 @@ const sendMessages=(roomId,message)=>{
         {/* Middle: Word Display */}
         <div className="flex-1 flex justify-center">
           <div className="bg-gray-200 px-8 py-3 rounded-lg border-2 border-gray-400">
-            <span className="text-2xl font-bold tracking-widest text-gray-800">{!room?.guessed?getScribbleWord(room?.drawWord):room?.drawWord}</span>
+            <span className="text-2xl font-bold tracking-widest text-gray-800">{navbarWord}</span>
           </div>
         </div>
 
@@ -212,8 +277,10 @@ const sendMessages=(roomId,message)=>{
           <div className="flex-1 overflow-y-auto p-3">
             {/* Player items */}
             {room?.players?.length > 0 ? (
-              room.players.map((player, index) => (
-                <div key={index} className="bg-gray-50 rounded-lg p-3 mb-2 border-2 border-gray-200 hover:border-blue-400 transition-colors">
+              [...room.players].sort((a, b) => b.score - a.score).map((player, index) => {
+                const hasGuessed = room?.guessedPlayers?.some((gp) => gp.socketId === player.socketId)
+                return (
+                <div key={player?.socketId || index} className={`rounded-lg p-3 mb-2 border-2 transition-all duration-500 ${hasGuessed ? 'bg-green-100 border-green-400' : 'bg-gray-50 border-gray-200 hover:border-blue-400'}`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-lg font-bold text-gray-700">#{index + 1}</span>
@@ -221,12 +288,13 @@ const sendMessages=(roomId,message)=>{
                         {player?.name?.charAt(0).toUpperCase() || 'P'}
                       </div> */}
                       <div><Avatar className="w-15 h-15" colourr={player?.colour} eyee={player?.eyes} smilee={player?.smile} /></div>
-                      <span className="font-semibold text-gray-800">{player?.name || 'Player'}</span>
+                      <span className="font-semibold text-gray-800">{player?.name || 'Player'} {player.socketId===room?.sktId?"(You)":null}</span>
                     </div>
-                    <span className="text-sm font-bold text-green-600">{player?.score}</span>
+                    <span className={`text-sm font-bold ${hasGuessed ? 'text-green-700' : 'text-green-600'}`}>{player?.score}</span>
                   </div>
                 </div>
-              ))
+                )
+              })
             ) : (
               <div className="text-center text-gray-500 mt-8">
                 <p>No players yet</p>
@@ -252,12 +320,15 @@ const sendMessages=(roomId,message)=>{
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-3 bg-gray-50">
             {room?.messages?.length > 0 ? (
-              room?.messages?.map((msg, index) => (
-                <div key={index} className="mb-2 p-2 bg-white rounded-lg border border-gray-200">
-                  <span className="font-semibold text-blue-600">{msg.socketId===room?.sktId?"You":msg.name}: </span>
-                  <span className="text-gray-800">{msg.message}</span>
+              room?.messages?.map((msg, index) => {
+                const isGuessMsg = msg?.message?.trim()?.toLowerCase()?.endsWith("has guessed")
+                return (
+                <div key={index} className={`mb-2 p-2 rounded-lg border ${isGuessMsg ? 'bg-green-100 border-green-300' : 'bg-white border-gray-200'}`}>
+                  <span className={`font-semibold ${isGuessMsg ? 'text-green-700' : 'text-blue-600'}`}>{msg.socketId===room?.sktId?"You":msg.name}: </span>
+                  <span className={isGuessMsg ? 'font-semibold text-green-800' : 'text-gray-800'}>{msg.message}</span>
                 </div>
-              ))
+                )
+              })
             ) : (
               <div className="text-center text-gray-400 mt-8">
                 <p>No messages yet</p>
@@ -310,8 +381,10 @@ const sendMessages=(roomId,message)=>{
             </div>
             <div className="flex-1 overflow-y-auto p-2">
               {room?.players?.length > 0 ? (
-                room.players.map((player, index) => (
-                  <div key={index} className="bg-gray-50 rounded p-2 mb-1 border border-gray-200 text-xs">
+                [...room.players].sort((a, b) => b.score - a.score).map((player, index) => {
+                  const hasGuessed = room?.guessedPlayers?.some((gp) => gp.socketId === player.socketId)
+                  return (
+                  <div key={player?.socketId || index} className={`rounded p-2 mb-1 border text-xs transition-all duration-500 ${hasGuessed ? 'bg-green-100 border-green-400' : 'bg-gray-50 border-gray-200'}`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1">
                         <span className="font-bold text-gray-700">#{index + 1}</span>
@@ -319,12 +392,13 @@ const sendMessages=(roomId,message)=>{
                           {player?.name?.charAt(0).toUpperCase() || 'P'}
                         </div> */}
                         <div><Avatar className="w-15 h-15" colourr={player?.colour} eyee={player?.eyes} smilee={player?.smile} /></div>
-                        <span className="font-semibold text-gray-800 truncate">{player?.name || 'Player'}</span>
+                        <span className="font-semibold text-gray-800 truncate">{player?.name || 'Player'} {player.socketId===room?.sktId?"(You)":null}</span>
                       </div>
-                      <span className="text-xs font-bold text-green-600">{player?.score}</span>
+                      <span className={`text-xs font-bold ${hasGuessed ? 'text-green-700' : 'text-green-600'}`}>{player?.score}</span>
                     </div>
                   </div>
-                ))
+                  )
+                })
               ) : (
                 <div className="text-center text-gray-500 text-xs mt-4">
                   <p>No players</p>
@@ -341,12 +415,15 @@ const sendMessages=(roomId,message)=>{
             </div>
             <div className="flex-1 overflow-y-auto p-2 bg-gray-50">
               {room?.messages?.length > 0 ? (
-                room?.messages?.map((msg, index) => (
-                  <div key={index} className="mb-1 p-1 bg-white rounded border border-gray-200 text-xs">
-                    <span className="font-semibold text-blue-600">{msg.socketId===room?.sktId?"You":msg.name}: </span>
-                    <span className="text-gray-800">{msg.message}</span>
+                room?.messages?.map((msg, index) => {
+                  const isGuessMsg = msg?.message?.trim()?.toLowerCase()?.endsWith("has guessed")
+                  return (
+                  <div key={index} className={`mb-1 p-1 rounded border text-xs ${isGuessMsg ? 'bg-green-100 border-green-300' : 'bg-white border-gray-200'}`}>
+                    <span className={`font-semibold ${isGuessMsg ? 'text-green-700' : 'text-blue-600'}`}>{msg.socketId===room?.sktId?"You":msg.name}: </span>
+                    <span className={isGuessMsg ? 'font-semibold text-green-800' : 'text-gray-800'}>{msg.message}</span>
                   </div>
-                ))
+                  )
+                })
               ) : (
                 <div className="text-center text-gray-400 text-xs mt-4">
                   <p>No messages</p>
@@ -393,6 +470,12 @@ const sendMessages=(roomId,message)=>{
       {room?.displayScore && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-3">
           <Score notGuessedPlayers={room?.notGuessedPlayers} guessedPlayers={room?.guessedPlayers || []} correctWord={correctWord} />
+        </div>
+      )}
+
+      {room?.displayFinalScore && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-3">
+          <FinalScoreCard players={room?.players || []} />
         </div>
       )}
     </div>

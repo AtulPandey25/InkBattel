@@ -78,3 +78,11 @@ export const verifyGuess=({roomId,message})=>{
         console.log(error)
     }
 }
+
+const guessedMessage=(roomId,socketId,name)=>{
+    try{
+        socket.emit("guessed-message",{roomId,socketId,name})
+    }catch(error){
+        console.log(error)
+    }
+}

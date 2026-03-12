@@ -11,6 +11,10 @@ const Start = () => {
         toast.error("Room not found")
         return
       }
+      if(room?.players.length<2){
+        toast.error("At least 2 members are required")
+        return
+      }
         try{
             room?.setIsPlaying(true)
             toast.success("Game Started")
