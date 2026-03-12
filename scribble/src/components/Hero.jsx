@@ -124,16 +124,18 @@ const [name,setName]=useState("")
 
   const dispatch = useDispatch()
   const playerDetail =useSelector((state)=>state?.avatarUser)
-  
+  const handleSetAvatar=(ava)=>{
+    setName(ava.name || "");
+    seteye(Number(ava.eye) || 0);
+    setclr(Number(ava.clr) || 0);
+    setSm(Number(ava.sm) || 0);
+  } 
   useEffect(()=>{
     const stored = localStorage.getItem("userDetail");
     if(stored){
       try{
         const ava = JSON.parse(stored);
-        setName(ava.name || "");
-        seteye(Number(ava.eye) || 0);
-        setclr(Number(ava.clr) || 0);
-        setSm(Number(ava.sm) || 0);
+        handleSetAvatar(ava)
         const restored = { name: (ava.name || ""), colour: colours[Number(ava.clr) || 0], eyes: eyes[Number(ava.eye) || 0], smile: smile[Number(ava.sm) || 0] };
         dispatch(updateAvatar(restored));
       }catch(err){
