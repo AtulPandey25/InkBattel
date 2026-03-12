@@ -160,8 +160,16 @@ io.on("connection",(socket)=>{
                 roundEnding = true
                 roundEnd(roomId,timerInterval)
             }
-            if(time==room.settings.drawTime-20 || time==room.settings.drawTime-40 || time==room.settings.drawTime-50){
-                io.to.emit("show-hints")
+            if(room.guessWord.length==3 && room.settings.hints==3){
+                   if(time==room.settings.drawTime-21 ||  time==room.settings.drawTime-51){
+                   io.to(roomId).emit("show-hints")
+                }
+
+            }
+            else{
+                  if(room.settings.hints==3 && (time==room.settings.drawTime-21 || time==room.settings.drawTime-41 || time==room.settings.drawTime-51)) io.to(roomId).emit("show-hints")
+                  else if(room.settings.hints==2 && (time==room.settings.drawTime-21 || time==room.settings.drawTime-41)) io.to(roomId).emit("show-hints")
+                  else if(room.settings.hints==1 && (time==room.settings.drawTime-21 )) io.to(roomId).emit("show-hints") 
             }
         }, 1000);
 
@@ -184,9 +192,8 @@ io.on("connection",(socket)=>{
             socketRooms.delete(socket.id)
         }
     })
-
-
-
 })
+
+
 
 module.exports={io,app,server}

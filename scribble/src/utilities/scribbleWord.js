@@ -1,19 +1,25 @@
+export const getScribbleWord = (word = "", revealedHintIndexes = []) => {
+    const revealedHints = new Set(revealedHintIndexes)
 
+    return word
+        .split("")
+        .map((char, index) => {
+            if (char === " ") return " "
+            if (revealedHints.has(index)) {
+                return char
+            }
 
-export const getScribbleWord=(word,room)=>{
-    return word.split("").map((char)=>{
-        if(char===" ") return " "
-        if(room?.hintsShown>0){
-
-        }
-        else return "_"
-    }).join(" ")
+            return "_"
+        })
+        .join(" ")
 }
+
+
+
 
 export const scoreDisplay=(drawerId,room,guessed)=>{
     room?.setDisplayScore(true)
     setInterval(() => {
     }, 5000);
     room?.setDisplayScore(false)
-    
 }

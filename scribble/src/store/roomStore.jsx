@@ -24,6 +24,8 @@ export const useRoom = create((set) => ({
   notGuessedPlayers:[],
   displayFinalScore:false,
   hintsShown:0,
+  hintCount:0,
+  revealedHintIndexes:[],
 
 
   setPlayers: (players) => set({ players }),
@@ -49,7 +51,16 @@ export const useRoom = create((set) => ({
   setNotGuessedPlayers:(notGuessedPlayers)=>set({ notGuessedPlayers }),
   setDisplayFinalScore:(displayFinalScore)=>set({displayFinalScore}),
   setHintsShown:(hintsShown)=>set({hintsShown}),
-
+  incrementHintsShown:()=>set((state)=>({hintsShown: state.hintsShown + 1})),
+  resetHintsShown:()=>set({hintsShown:0}),
+  setHintCount:(hintCount)=>set({hintCount}),
+  setRevealedHintIndexes:(revealedHintIndexes)=>set({revealedHintIndexes}),
+  addRevealedHintIndex:(hintIndex)=>set((state)=>({
+    revealedHintIndexes: state.revealedHintIndexes.includes(hintIndex)
+      ? state.revealedHintIndexes
+      : [...state.revealedHintIndexes, hintIndex]
+  })),
+  resetHintState:()=>set({hintsShown:0, hintCount:0, revealedHintIndexes:[]}),
 
   resetRoom: () => set({
     players: [],
@@ -75,5 +86,8 @@ export const useRoom = create((set) => ({
     notGuessedPlayers:[],
     displayFinalScore:false,
     hintsShown:0,
+    hintCount:0,
+    revealedHintIndexes:[],
+    
   })
 }))

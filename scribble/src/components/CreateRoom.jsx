@@ -56,10 +56,15 @@ const CreateRoom = () => {
         }
       };
       await createRoom(roomSettings, playerDetail);
-      console.log("crwe")
     } catch(error) {
       console.log(error);
+      return toast.error("Internal Server Error Occured")
     }
+  }
+
+  const handleCreateRoomSubmit = (e) => {
+    e.preventDefault()
+    createRoomm(playerDetail)
   }
 
 
@@ -69,7 +74,11 @@ const CreateRoom = () => {
       <div className="w-screen flex flex-col items-center">
         <h1 className="create-room-heading" style={{ fontSize: '2rem', marginTop: '24px', marginBottom: '8px', color: '#333' }}>Create Room</h1>
         <div className="create-room-container" style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <form className="paper-card create-room-card scrollable-form mobile-form">
+          <form
+            id="create-room-form"
+            onSubmit={handleCreateRoomSubmit}
+            className="paper-card create-room-card scrollable-form mobile-form"
+          >
           <div className="flex flex-col items-start">
             <label className="font-semibold mb-1">Room Name:</label>
             <input
@@ -123,13 +132,15 @@ const CreateRoom = () => {
         </form>
         <div className="absolute left-0 bottom-0 w-full flex flex-row items-center mobile-bottom-btns" style={{height: '70px', gap: 0, padding: 0}}>
           <button
-            onClick={()=>createRoomm(playerDetail)}
+            type="submit"
+            form="create-room-form"
             className="pop-btn font-bold h-full mobile-create-btn"
             style={{ width: '65%', background: '#22c55e', color: '#222', fontFamily: 'Gochi Hand, cursive', fontSize: '1.15rem', borderColor: '#16a34a', borderWidth: 3, borderStyle: 'solid', borderRadius: '8px 0 0 0', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', margin: 0, padding: 0 }}
           >
             Create Room
           </button>
           <button
+          type="button"
           onClick={()=>dispatch(createRooom(false))}
             className="pop-btn font-bold h-full mobile-home-btn"
             style={{ width: '35%', background: '#ef4444', color: '#fff', fontFamily: 'Gochi Hand, cursive', fontSize: '1.05rem', borderColor: '#b91c1c', borderWidth: 3, borderStyle: 'solid', borderRadius: '0 0 8px 0', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', margin: 0, padding: 0 }}

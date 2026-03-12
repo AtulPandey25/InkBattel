@@ -63,10 +63,16 @@ useEffect(()=>{
   "w-5 h-5 border-b-4 border-b-black rounded-b-3xl mt-1",
   "w-5 h-5 border-t-4 border-t-black rounded-t-3xl mt-2",
   "w-5 h-2 rounded-bl-lg border-b-3 border-black mt-3",
-  "w-5 h-2 rounded-bl-lg border-b-3 border-black mt-3",
+  "w-5 h-2 rounded-br-lg border-b-3 border-black mt-3",
   "w-6 h-3 border-b-4 border-b-black rounded-b-full mt-2",
   "w-4 h-2 border-t-4 border-t-black rounded-t-full mt-2",
-  "w-4 h-4 border-2 border-black rounded-full mt-2" // new smile
+  "w-4 h-4 border-2 border-black rounded-full mt-2",
+  "w-6 h-2 border-b-2 border-black rounded-full mt-2",
+  "w-6 h-2 border-t-2 border-black rounded-full mt-2",
+  "w-3 h-1 bg-black rounded-full mt-3",
+  "w-6 h-1 bg-black rounded-full mt-3",
+  "w-5 h-3 border-2 border-black rounded-b-full border-t-0 mt-2",
+  "w-5 h-3 border-2 border-black rounded-t-full border-b-0 mt-2"
 ]
 
 const eyes=[
@@ -80,22 +86,35 @@ const eyes=[
   "w-3 h-2 bg-black rounded-b-full", // curved down (sad)
   "w-3 h-2 border-t-4 border-black bg-transparent rounded-t-full", // skribble style up
   "w-3 h-2 border-b-4 border-black bg-transparent rounded-b-full", // skribble style down
-  "w-2 h-2 bg-white border-2 border-black rounded-[50%]" // white eye with black border
+  "w-2 h-2 bg-white border-2 border-black rounded-[50%]", // white eye with black border
+  "w-3 h-3 bg-black rounded-full",
+  "w-2 h-3 bg-black rounded-full",
+  "w-4 h-1 border-t-2 border-black rounded-full",
+  "w-4 h-1 border-b-2 border-black rounded-full",
+  "w-3 h-2 border border-black bg-white rounded-full"
 ]
 
 
 const colours=[
   "bg-red-600",
+  "bg-rose-600",
   "bg-blue-600",
+  "bg-sky-600",
+  "bg-indigo-600",
   "bg-pink-600",
+  "bg-fuchsia-600",
   "bg-orange-600",
+  "bg-amber-600",
+  "bg-lime-600",
   "bg-green-600",
+  "bg-emerald-600",
+  "bg-teal-600",
   "bg-violet-600",
-  "bg-maroon-600",
-  "bg-brown-600",
   "bg-yellow-600",
   "bg-purple-600",
-  "bg-cyan-600"
+  "bg-cyan-600",
+  "bg-slate-600",
+  "bg-stone-600"
 ]
 
 const [sm,setSm]=useState(0)
@@ -173,57 +192,27 @@ const joinRoomm=(roomId,playerDetail)=>{
 }
 
 const incSmile=()=>{
-  if(sm==10){
-    setSm(0)
-  }
-  else{
-    setSm(sm+1)
-  }
+  setSm((prev)=> (prev + 1) % smile.length)
 }
 
 const decSmile=()=>{
-  if(sm==0){
-    setSm(10)
-  }
-  else{
-    setSm(sm-1)
-  }
+  setSm((prev)=> (prev - 1 + smile.length) % smile.length)
 }
 const incEye=()=>{
-  if(eye==10){
-    seteye(0)
-  }
-  else{
-    seteye(eye+1)
-  }
+  seteye((prev)=> (prev + 1) % eyes.length)
 }
 
 const decEye=()=>{
-  if(eye==0){
-    seteye(10)
-  }
-  else{
-    seteye(eye-1)
-  }
+  seteye((prev)=> (prev - 1 + eyes.length) % eyes.length)
 }
 
 
 const incClr=()=>{
-  if(clr==10){
-    setclr(0)
-  }
-  else{
-    setclr(clr+1)
-  }
+  setclr((prev)=> (prev + 1) % colours.length)
 }
 
 const decClr=()=>{
-  if(clr==0){
-    setclr(10)
-  }
-  else{
-    setclr(clr-1)
-  }
+  setclr((prev)=> (prev - 1 + colours.length) % colours.length)
 }
 
   

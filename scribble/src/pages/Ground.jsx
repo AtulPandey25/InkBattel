@@ -87,6 +87,7 @@ const PlayGround = () => {
       room?.setNotGuessedPlayers(notGuessed || [])
       room?.setGuessed(false)
       room?.setDrawWord("")
+      room?.resetHintState()
       room?.setDisplayScore(false)
       room?.setIsChoosing(true)
     }
@@ -97,6 +98,7 @@ const PlayGround = () => {
       room?.setDisplayScore(true)
       room?.setNotGuessedPlayers(notGuessed || [])
       room?.setIsChoosing(false)
+      room?.resetHintState()
     }
 
 
@@ -105,6 +107,7 @@ const PlayGround = () => {
 
     const handleGuessWord = ({word})=>{
       room?.setDrawWord(word)
+      room?.resetHintState()
       room?.setIsChoosing(false)
     }
 
@@ -112,6 +115,7 @@ const PlayGround = () => {
       if(time==0){
         room?.setGuessed(false)
         room?.setDrawWord("")
+        room?.resetHintState()
       }
       room?.setTimer(time)
     }
@@ -127,6 +131,7 @@ const PlayGround = () => {
         room?.setIsChoosing(false)
         room?.setGuessed(false)
         room?.setDrawWord("")
+        room?.resetHintState()
         navigate("/")
       }, 5000)
     }
@@ -144,7 +149,19 @@ const PlayGround = () => {
 
 
     const handleHints=()=>{
-      room?.setHintsShown((prev)=>prev+1)
+      const currentRoom = useRoom.getState()
+      const availableIndexes = currentRoom.drawWord
+        .split("")
+        .map((char, index) => (char === " " ? -1 : index))
+        .filter((index) => index !== -1 && !currentRoom.revealedHintIndexes.includes(index))
+
+      if (availableIndexes.length === 0) {
+        return
+      }
+
+      const randomIndex = availableIndexes[Math.floor(Math.random() * availableIndexes.length)]
+      currentRoom.addRevealedHintIndex(randomIndex)
+      currentRoom.incrementHintsShown()
     }
 
     socket.on("player-joined", handlePlayerJoined)
@@ -157,7 +174,9 @@ const PlayGround = () => {
     socket.on("game-ended", handleGameEnded)
     socket.on("verified", handleVerified)
     socket.on("score-updated", handleScoreUpdated)
-
+    socket.on("show-hints", handleHints)
+    
+    
     return ()=>{
       socket.off("player-joined", handlePlayerJoined)
       socket.off("player-exited", handlePlayerExited)
@@ -169,6 +188,7 @@ const PlayGround = () => {
       socket.off("game-ended", handleGameEnded)
       socket.off("verified", handleVerified)
       socket.off("score-updated", handleScoreUpdated)
+      socket.off("show-hints", handleHints)
     }
   },[])
 
@@ -195,7 +215,7 @@ const copyLink=async (roomId)=>{
 
 const sendMessages=(roomId,message)=>{
   try {
-     if(message.trim()!="" && room?.drawWord===message){
+     if(message.trim()!="" && room?.drawWord.toLowerCase()===message.toLowerCase()){
       if(room?.sktId===room?.drawerId) return toast.error("You are not elligible")
       if(room?.sktId!==room?.drawerId && !room?.guessed)
         {toast.success("You guessed It right !!!")
@@ -220,7 +240,7 @@ const navbarWord = !hasSelectedWord
   ? "Waiting"
   : (isDrawer || room?.guessed || room?.displayScore)
     ? room?.drawWord
-    : getScribbleWord(room?.drawWord,room)
+    : getScribbleWord(room?.drawWord, room?.revealedHintIndexes)
 
 
 
