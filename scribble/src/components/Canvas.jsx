@@ -1,19 +1,35 @@
-import React, { useLayoutEffect,useState,useRef } from 'react'
+import React, { useCallback, useLayoutEffect,useState,useRef,useEffect} from 'react'
 import WordGuess from "../components/WordGuess.jsx"
 import Start from '../components/Start'
 import {useRoom} from '../store/roomStore'
+import {startOnBoard,drawOnBoard,stopOnBoard} from "../services/board.socket.services.js"
+import socket from "../utilities/socket.js"
 const Canvass = () => {
 const canvaRef=useRef(null)
 const [pencilStrok,setPencilStrok]=useState(3)
-const [eraserStrok,setEraserStrok]=useState(10)
+const [eraserStrok,setEraserStrok]=useState(30)
 const [clr,setClr]=useState("black")
 const [pencilClr,setPencilClr]=useState("black")
 const [isDrawing,setIsDrawing]=useState(false)
 const [tool,setTool]=useState("pencil")
 const [showPencilStroke,setShowPencilStroke]=useState(false)
 const [showEraserStroke,setShowEraserStroke]=useState(false)
+const localDrawingRef = useRef(false)
+const remoteDrawingRef = useRef(false)
+
+const room=useRoom()
+const isHost = room?.hostId === room?.sktId
+const isDrawer = room?.drawerId === room?.sktId
+const canDraw = room?.isPlaying && !room?.isChoosing && isDrawer
+const showCanvasBoard = room?.isPlaying && !room?.isChoosing
+const currentDrawer = room?.players?.find((player) => player.socketId === room?.drawerId)
+const drawerName = currentDrawer?.name || 'A player'
+
+
 
 useLayoutEffect(() => {
+  if (!showCanvasBoard) return;
+
   const canvas = canvaRef.current;
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
@@ -21,6 +37,10 @@ useLayoutEffect(() => {
   function resize() {
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
+
+    if (rect.width === 0 || rect.height === 0) {
+      return;
+    }
 
     const snapshot = document.createElement('canvas');
     snapshot.width = canvas.width;
@@ -47,28 +67,134 @@ useLayoutEffect(() => {
     }
   }
 
-  resize();
+  const frameId = window.requestAnimationFrame(resize);
   window.addEventListener('resize', resize);
-  return () => window.removeEventListener('resize', resize);
-}, []);
+  const resizeObserver = typeof ResizeObserver !== 'undefined'
+    ? new ResizeObserver(() => resize())
+    : null;
+
+  resizeObserver?.observe(canvas);
+  if (canvas.parentElement) {
+    resizeObserver?.observe(canvas.parentElement);
+  }
+
+  return () => {
+    window.cancelAnimationFrame(frameId);
+    window.removeEventListener('resize', resize);
+    resizeObserver?.disconnect();
+  };
+}, [showCanvasBoard]);
 
 const getPosFromEvent = (nativeEvent) => {
   const rect = canvaRef.current.getBoundingClientRect();
   return { x: nativeEvent.clientX - rect.left, y: nativeEvent.clientY - rect.top };
 };
 
+const getRatioFromPoint = (x, y) => {
+  const rect = canvaRef.current?.getBoundingClientRect();
+  if (!rect || rect.width === 0 || rect.height === 0) {
+    return { xRatio: 0, yRatio: 0 };
+  }
 
+  return {
+    xRatio: x / rect.width,
+    yRatio: y / rect.height,
+  };
+};
+
+const getPointFromRatio = useCallback((xRatio, yRatio) => {
+  const rect = canvaRef.current?.getBoundingClientRect();
+  if (!rect) {
+    return { x: 0, y: 0 };
+  }
+
+  return {
+    x: xRatio * rect.width,
+    y: yRatio * rect.height,
+  };
+}, []);
+
+const stopDrawing = (e) => {
+  const canvas = canvaRef.current;
+  if (!canvas) return;
+
+  if (e && e.nativeEvent && e.nativeEvent.pointerId !== undefined) {
+    canvas.releasePointerCapture?.(e.nativeEvent.pointerId);
+  }
+
+  if (localDrawingRef.current) {
+    stopOnBoard(room?.roomId)
+  }
+
+  localDrawingRef.current = false
+  setIsDrawing(false);
+  const ctx = canvas.getContext('2d');
+  ctx.beginPath();
+}
+
+const handleStopBoard = useCallback(() => {
+  const canvas = canvaRef.current;
+  if (!canvas) return;
+  remoteDrawingRef.current = false
+  const ctx = canvas.getContext('2d');
+  ctx.beginPath();
+}, []);
+
+const handleStartBoard = useCallback(({xRatio,yRatio}) => {
+  const canvas = canvaRef.current;
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const { x, y } = getPointFromRatio(xRatio, yRatio);
+  remoteDrawingRef.current = true
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+}, [getPointFromRatio]);
+
+
+const handleDrawBoard = useCallback(({xRatio,yRatio,tool,pencilStrokk,eraserStrokk,pencilClrr}) => {
+  const canvas = canvaRef.current;
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const { x, y } = getPointFromRatio(xRatio, yRatio);
+
+  // If start event arrives late/out-of-order, prevent connecting from stale path.
+  if (!remoteDrawingRef.current) {
+    remoteDrawingRef.current = true
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    return;
+  }
+
+  ctx.lineWidth = tool==="pencil" ? pencilStrokk : eraserStrokk;
+  tool==="pencil"?ctx.strokeStyle = pencilClrr:ctx.strokeStyle = "white";
+  ctx.lineTo(x,y);
+  ctx.stroke();
+}, [getPointFromRatio]);
+
+useEffect(()=>{
+  socket.on("start-draw",handleStartBoard)
+  socket.on("draw-draw",handleDrawBoard)
+  socket.on("stop-draw",handleStopBoard)
+  return ()=>{
+    socket.off("start-draw",handleStartBoard)
+    socket.off("draw-draw",handleDrawBoard)
+    socket.off("stop-draw",handleStopBoard)
+  }
+},[handleDrawBoard, handleStartBoard, handleStopBoard])
 
 const startDrawing = (e) => {
   const native = e.nativeEvent;
   const { x, y } = getPosFromEvent(native);
+  const { xRatio, yRatio } = getRatioFromPoint(x, y);
   const canvas = canvaRef.current;
   const ctx = canvas.getContext('2d');
   ctx.beginPath();
   ctx.moveTo(x, y);
+  localDrawingRef.current = true
   setIsDrawing(true);
   canvas.setPointerCapture?.(native.pointerId);
   native.preventDefault();
+  startOnBoard(xRatio,yRatio,room?.roomId)
 };
 
 const draw = (e) => {
@@ -76,31 +202,14 @@ const draw = (e) => {
   if (e.nativeEvent.buttons !== 1) { stopDrawing(e); return; }
   const native = e.nativeEvent;
   const { x, y } = getPosFromEvent(native);
+  const { xRatio, yRatio } = getRatioFromPoint(x, y);
   const ctx = canvaRef.current.getContext('2d');
   ctx.lineWidth = tool==="pencil" ? pencilStrok : eraserStrok;
   tool==="pencil"?ctx.strokeStyle = pencilClr:ctx.strokeStyle = "white";
   ctx.lineTo(x, y);
   ctx.stroke();
+  drawOnBoard(xRatio,yRatio,tool,room?.roomId,pencilStrok,eraserStrok,pencilClr)
 };
-
-const stopDrawing = (e) => {
-  const canvas = canvaRef.current;
-  if (e && e.nativeEvent && e.nativeEvent.pointerId !== undefined) {
-    canvas.releasePointerCapture?.(e.nativeEvent.pointerId);
-  }
-  setIsDrawing(false);
-  const ctx = canvas.getContext('2d');
-  ctx.closePath();
-}
-
-
-const room=useRoom()
-const isHost = room?.hostId === room?.sktId
-const isDrawer = room?.drawerId === room?.sktId
-const canDraw = room?.isPlaying && !room?.isChoosing && isDrawer
-const showCanvasBoard = room?.isPlaying && !room?.isChoosing
-const currentDrawer = room?.players?.find((player) => player.socketId === room?.drawerId)
-const drawerName = currentDrawer?.name || 'A player'
 
 const handleEraser=()=>{
   setTool("eraser")
@@ -214,8 +323,8 @@ const renderStatusCard = (title, subtitle) => (
                         <div className="absolute bottom-full left-0 mb-2 bg-white border-2 border-gray-300 rounded-xl shadow-lg z-20 min-w-[100px]">
                           {[
                             { value: 6, label: 'Small' },
-                            { value: 10, label: 'Medium' },
-                            { value: 20, label: 'Large' },
+                            { value: 20, label: 'Medium' },
+                            { value: 30, label: 'Large' },
                             { value: 40, label: 'XLarge' }
                           ].map((option) => (
                             <button
@@ -237,7 +346,7 @@ const renderStatusCard = (title, subtitle) => (
                       <span>Color</span>
                       <input
                         type="color"
-                        value={clr === "#ffffff" ? "#111827" : clr}
+                        value={pencilClr === "#ffffff" ? "#111827" : clr}
                         onChange={(e) => setPencilClr(e.target.value)}
                         className="h-8 w-10 cursor-pointer rounded border border-gray-300 bg-white"
                       />
@@ -265,12 +374,9 @@ const renderStatusCard = (title, subtitle) => (
                       <span>Cancel</span>
                     </button>
                   </div>
-
-                  {!canDraw ? (
-                    <p className="mt-2 text-center text-xs font-semibold text-gray-500">Toolbar visible for UX preview. You can connect drawing logic later.</p>
-                  ) : null}
                 </div>
               </div>}
+              
       </div>
     </div>
   )

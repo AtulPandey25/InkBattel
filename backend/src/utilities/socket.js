@@ -181,6 +181,19 @@ io.on("connection",(socket)=>{
         io.to.emit("guessed-edit",({roomId,socketId,name}))
     })
 
+
+    socket.on("start-board",({xRatio,yRatio,roomId})=>{
+        socket.to(roomId).emit("start-draw",{xRatio,yRatio,roomId})
+    })
+
+    socket.on("draw-board",({xRatio,yRatio,tool,roomId,pencilStrok,eraserStrok,pencilClr})=>{
+        socket.to(roomId).emit("draw-draw",{xRatio,yRatio,tool,roomId,pencilStrokk:pencilStrok,eraserStrokk:eraserStrok,pencilClrr:pencilClr})
+    })
+
+    socket.on("stop-board",({roomId})=>{
+        socket.to(roomId).emit("stop-draw",{roomId})
+    })
+
     // Handle disconnect - when user closes tab, loses connection, swipes back, etc.
     socket.on("disconnect",()=>{
         const roomId = socketRooms.get(socket.id);

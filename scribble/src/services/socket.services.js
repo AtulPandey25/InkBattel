@@ -2,9 +2,7 @@ import socket from "../utilities/socket.js"
 
 export const createRoom=(roomSettings, playerDetail)=>{
     try{
-        console.log("CreateRoofFns")
         socket.emit("create-room", {roomSettings, playerDetail})
-        console.log("CreateRoofFne")
     }
     catch(error){
         console.log(error)
