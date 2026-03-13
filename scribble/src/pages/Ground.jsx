@@ -157,19 +157,17 @@ const PlayGround = () => {
     }
 
     const handleGameEnded = ()=>{
-      room?.setDisplayFinalScore(true)
       setTimeout(() => {
+        room?.setDisplayFinalScore(true)
         dispatch(createRooom(false))
         room?.setMessages([])
         room?.setDisplayScore(false)
-        room?.setDisplayFinalScore(false)
         room?.setIsPlaying(false)
         room?.setIsChoosing(false)
         room?.setGuessed(false)
         room?.setDrawWord("")
         room?.resetHintState()
-        navigate("/")
-      }, 5000)
+      }, 3000)
     }
 
     const handleVerified = ({res})=>{
@@ -394,7 +392,7 @@ const navbarWord = !hasSelectedWord
                       {/* <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-bold">
                         {player?.name?.charAt(0).toUpperCase() || 'P'}
                       </div> */}
-                      <div><Player className="w-15 h-15" colourr={player?.colour} eyee={player?.eyes} smilee={player?.smile} /></div>
+                      <div><Avatar className="w-15 h-15" colourr={player?.colour} eyee={player?.eyes} smilee={player?.smile} /></div>
                       <span className="font-semibold text-gray-800">{player?.name || 'Player'} {player.socketId===room?.sktId?"(You)":null}</span>
                     </div>
                     <span className={`text-sm font-bold ${hasGuessed ? 'text-green-700' : 'text-green-600'}`}>{player?.score}</span>

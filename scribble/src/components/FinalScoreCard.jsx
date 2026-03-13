@@ -16,6 +16,7 @@ const FinalScoreCard = ({ players = [] }) => {
       exitRoom(room.roomId)
     }
     navigate("/")
+    room?.setDisplayFinalScore(false)
   }
 
   return (
