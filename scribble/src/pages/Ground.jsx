@@ -18,7 +18,14 @@ const PlayGround = () => {
   const room = useRoom()
   const [message, setMessage] = useState('')
   const [correctWord, setCorrectWord] = useState('')
+  const [showSettings, setShowSettings] = useState(false)
+  const [isSoundOn, setIsSoundOn] = useState(() => {
+    const savedSoundState = localStorage.getItem("scribble-sound")
+    if (savedSoundState === null) return true
+    return savedSoundState === "on"
+  })
   const chooseFallbackRef = useRef(null)
+  const settingsRef = useRef(null)
   const messagesEndRefDesktop = useRef(null)
   const messagesEndRefMobile = useRef(null)
   const playerEndRef = useRef(null)
@@ -75,6 +82,7 @@ const PlayGround = () => {
     const handlePlayerExited = ({rooom})=>{
       room?.setPlayers(rooom.players)
       room?.setRoomDetail(rooom)
+      room?.setMessages(rooom.messages)
     }
 
     const handleNewMessage = ({meessage})=>{
@@ -234,6 +242,23 @@ const PlayGround = () => {
     playerEndRefMobile.current?.scrollIntoView({behavior:'smooth'})
   },[room?.players])
 
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (settingsRef.current && !settingsRef.current.contains(event.target)) {
+        setShowSettings(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleOutsideClick)
+    return () => document.removeEventListener("mousedown", handleOutsideClick)
+  }, [])
+
+  const handleSoundToggle = () => {
+    const nextState = !isSoundOn
+    setIsSoundOn(nextState)
+    localStorage.setItem("scribble-sound", nextState ? "on" : "off")
+  }
+
 const copyLink=async (roomId)=>{
     try {
       const text = `${window.location.origin}/join/${roomId}`;
@@ -248,7 +273,14 @@ const copyLink=async (roomId)=>{
 const sendMessages=(roomId,message)=>{
   try {
      if(message.trim()!="" && room?.drawWord.toLowerCase()===message.toLowerCase()){
-      if(room?.sktId===room?.drawerId) return toast.error("You are not elligible")
+
+      if(room?.sktId===room?.drawerId) {
+        if(isSoundOn){
+          const audio=new Audio("../../public/sounds/faa.mp3")
+          audio.play()
+        }
+        return toast.error("You are not elligible")
+      }
       if(room?.sktId!==room?.drawerId && !room?.guessed)
         {toast.success("You guessed It right !!!")
         room?.setGuessed(true)
@@ -258,6 +290,10 @@ const sendMessages=(roomId,message)=>{
       }
     }
     else{
+        if(isSoundOn){
+          const audio=new Audio("../../public/sounds/faa.mp3")
+          audio.play()
+        }
         sendMessage(roomId,message)
     }
   } catch (error) {
@@ -308,13 +344,32 @@ const navbarWord = !hasSelectedWord
             </svg>
           </button>
         </div>
-        <div className="flex items-center">
-          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+        <div className="relative flex items-center" ref={settingsRef}>
+          <button
+            onClick={() => setShowSettings((prev) => !prev)}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
             <svg className="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
           </button>
+          {showSettings && (
+            <div className="absolute right-0 top-14 z-30 w-52 rounded-xl border-2 border-gray-300 bg-white p-3 shadow-xl">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-gray-700">Sound</span>
+                <button
+                  type="button"
+                  onClick={handleSoundToggle}
+                  className={`relative h-6 w-12 overflow-hidden rounded-full border-2 transition-colors ${isSoundOn ? 'border-green-500 bg-green-500' : 'border-gray-400 bg-gray-300'}`}
+                  aria-label="Toggle sound"
+                >
+                  <span className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white transition-transform duration-200 ${isSoundOn ? 'translate-x-6' : 'translate-x-0'}`} />
+                </button>
+              </div>
+              <p className="mt-2 text-xs font-medium text-gray-500">{isSoundOn ? 'On' : 'Off'}</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -374,10 +429,18 @@ const navbarWord = !hasSelectedWord
             {room?.messages?.length > 0 ? (
               room?.messages?.map((msg, index) => {
                 const isGuessMsg = msg?.message?.trim()?.toLowerCase()?.endsWith("has guessed")
+                const isJoinMsg = msg?.type === 'system' && msg?.systemType === 'join'
+                const isExitMsg = msg?.type === 'system' && msg?.systemType === 'exit'
                 return (
-                <div key={index} className={`mb-2 p-2 rounded-lg border ${isGuessMsg ? 'bg-green-100 border-green-300' : 'bg-white border-gray-200'}`}>
-                  <span className={`font-semibold ${isGuessMsg ? 'text-green-700' : 'text-blue-600'}`}>{msg.socketId===room?.sktId?"You":msg.name}: </span>
-                  <span className={isGuessMsg ? 'font-semibold text-green-800' : 'text-gray-800'}>{msg.message}</span>
+                <div key={index} className={`mb-2 p-2 rounded-lg border ${isJoinMsg ? 'bg-yellow-100 border-yellow-300' : isExitMsg ? 'bg-red-100 border-red-300' : isGuessMsg ? 'bg-green-100 border-green-300' : 'bg-white border-gray-200'}`}>
+                  {isJoinMsg || isExitMsg ? (
+                    <span className={`block text-center font-semibold ${isJoinMsg ? 'text-yellow-800' : 'text-red-800'}`}>{msg.message}</span>
+                  ) : (
+                    <>
+                      <span className={`font-semibold ${isGuessMsg ? 'text-green-700' : 'text-blue-600'}`}>{msg.socketId===room?.sktId?"You":msg.name}: </span>
+                      <span className={isGuessMsg ? 'font-semibold text-green-800' : 'text-gray-800'}>{msg.message}</span>
+                    </>
+                  )}
                 </div>
                 )
               })
@@ -469,10 +532,18 @@ const navbarWord = !hasSelectedWord
               {room?.messages?.length > 0 ? (
                 room?.messages?.map((msg, index) => {
                   const isGuessMsg = msg?.message?.trim()?.toLowerCase()?.endsWith("has guessed")
+                  const isJoinMsg = msg?.type === 'system' && msg?.systemType === 'join'
+                  const isExitMsg = msg?.type === 'system' && msg?.systemType === 'exit'
                   return (
-                  <div key={index} className={`mb-1 p-1 rounded border text-xs ${isGuessMsg ? 'bg-green-100 border-green-300' : 'bg-white border-gray-200'}`}>
-                    <span className={`font-semibold ${isGuessMsg ? 'text-green-700' : 'text-blue-600'}`}>{msg.socketId===room?.sktId?"You":msg.name}: </span>
-                    <span className={isGuessMsg ? 'font-semibold text-green-800' : 'text-gray-800'}>{msg.message}</span>
+                  <div key={index} className={`mb-1 p-1 rounded border text-xs ${isJoinMsg ? 'bg-yellow-100 border-yellow-300' : isExitMsg ? 'bg-red-100 border-red-300' : isGuessMsg ? 'bg-green-100 border-green-300' : 'bg-white border-gray-200'}`}>
+                    {isJoinMsg || isExitMsg ? (
+                      <span className={`block text-center font-semibold ${isJoinMsg ? 'text-yellow-800' : 'text-red-800'}`}>{msg.message}</span>
+                    ) : (
+                      <>
+                        <span className={`font-semibold ${isGuessMsg ? 'text-green-700' : 'text-blue-600'}`}>{msg.socketId===room?.sktId?"You":msg.name}: </span>
+                        <span className={isGuessMsg ? 'font-semibold text-green-800' : 'text-gray-800'}>{msg.message}</span>
+                      </>
+                    )}
                   </div>
                   )
                 })

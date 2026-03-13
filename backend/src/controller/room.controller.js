@@ -3,6 +3,14 @@ const {v4:uuidv4} = require("uuid")
 const {rooms}=require('../model/room.model.js')
 const {randomWords}=require("../utilities/words.js")
 
+const createSystemMessage = (message, systemType) => ({
+    name: "System",
+    socketId: "system",
+    message,
+    type: "system",
+    systemType,
+})
+
 //Function to create room
 const createRoom=(socketId, playerDetail, roomSettings)=>{
     try {
@@ -58,6 +66,7 @@ const joinRoom=(socket,roomId,playerDetail)=>{
             isDrawing: false
         }
         room.players.push(joinedPlayer)
+        room.messages.push(createSystemMessage(`${joinedPlayer.name} joined the room`, "join"))
 
         // If a round is active (choosing/drawing), include late joiners in current guessers.
         if(room.isPlaying && (room.phase === "choosing" || room.phase === "drawing")){
@@ -83,6 +92,7 @@ const exitRoom=(roomId,socketId)=>{
         }
         const player = room.players.find((player)=>player.socketId==socketId)
         if(!player) return null
+        room.messages.push(createSystemMessage(`${player.name} exited the room`, "exit"))
         const index=room.players.findIndex((p)=> p.socketId==socketId)
         room.players.splice(index,1)
 
@@ -117,6 +127,7 @@ const sendMessage=({roomId,socketId,message})=>{
                 name:player.name,
                 socketId:player.socketId,
                 message:message,
+                type:"chat",
             }
         )
         return room.messages
