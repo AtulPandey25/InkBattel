@@ -61,7 +61,7 @@ export const useRoom = create((set) => ({
       : [...state.revealedHintIndexes, hintIndex]
   })),
   resetHintState:()=>set({hintsShown:0, hintCount:0, revealedHintIndexes:[]}),
-
+  
   resetRoom: () => set({
     players: [],
     settings: {},

@@ -14,9 +14,11 @@ const io=new Server(server,{
     }
 })
 
+let timerStart=false
 
 const socketRooms = new Map();
 const roomTimers = new Map();
+const roomChooseTimers = new Map();
 
 io.on("connection",(socket)=>{
 
@@ -81,8 +83,8 @@ io.on("connection",(socket)=>{
         io.to(roomId).emit("guess-word",{roomId,rooom:room,word})
     })
 
-    socket.on("update-score",({roomId,socketId,score})=>{
-        const rooom=updateScore({roomId,socketId,score})
+    socket.on("update-score",({roomId,socketId,score,drawerId})=>{
+        const rooom=updateScore({roomId,socketId,score,drawerId})
         if(!rooom) return null
         io.to(roomId).emit("score-updated",{roomId,rooom})
     })
@@ -97,6 +99,7 @@ io.on("connection",(socket)=>{
 
     const roundEnd=(roomId,timerInterval)=>{
         clearInterval(timerInterval)
+        timerStart=false
         const trackedTimer = roomTimers.get(roomId)
         if(trackedTimer){
             clearInterval(trackedTimer)
@@ -121,6 +124,7 @@ io.on("connection",(socket)=>{
             if(round>totalRounds){
                 const room=deleteRoom(roomId)
                 if(!room) return null
+                timerStart=false
                 io.to(roomId).emit("game-ended",{roomId,guessed,notGuessed})
             }
             else{
@@ -130,10 +134,17 @@ io.on("connection",(socket)=>{
     }
 
     socket.on("timer-start",(roomId)=>{
+        timerStart=true
         const timerData = timerUpdate(roomId)
         if(!timerData) return null
         let {time}=timerData
         if(!time) return null
+
+        const activeChooseTimer = roomChooseTimers.get(roomId)
+        if(activeChooseTimer){
+            clearInterval(activeChooseTimer)
+            roomChooseTimers.delete(roomId)
+        }
 
         const existingTimer = roomTimers.get(roomId)
         if(existingTimer){
@@ -176,10 +187,42 @@ io.on("connection",(socket)=>{
         roomTimers.set(roomId, timerInterval)
     })
 
+    socket.on("choose-timer",({roomId,socketId,drawerId})=>{
+        if(socketId !== drawerId) return
+
+        const existingChooseTimer = roomChooseTimers.get(roomId)
+        if(existingChooseTimer){
+            clearInterval(existingChooseTimer)
+            roomChooseTimers.delete(roomId)
+        }
+
+        let time=15;
+        let chooseInterval=setInterval(() => {
+            const room = rooms.get(roomId)
+            if(!room || room.phase !== "choosing"){
+                clearInterval(chooseInterval)
+                roomChooseTimers.delete(roomId)
+                return
+            }
+
+            time--
+            io.to(roomId).emit("update-time",({roomId,time}))
+            if(time<=0){
+                clearInterval(chooseInterval)
+                roomChooseTimers.delete(roomId)
+            }
+            
+        }, 1000);
+
+        roomChooseTimers.set(roomId, chooseInterval)
+    })
+
+
 
     socket.on("guessed-message",({roomId,socketId,name})=>{
         io.to.emit("guessed-edit",({roomId,socketId,name}))
     })
+
 
 
     socket.on("start-board",({xRatio,yRatio,roomId})=>{
@@ -192,6 +235,19 @@ io.on("connection",(socket)=>{
 
     socket.on("stop-board",({roomId})=>{
         socket.to(roomId).emit("stop-draw",{roomId})
+    })
+
+
+    socket.on("request-board-sync", ({ roomId }) => {
+        const room = rooms.get(roomId)
+        if (!room || room.phase !== "drawing") return
+        socket.to(roomId).emit("board-sync-request", { roomId, requesterId: socket.id })
+    })
+
+    socket.on("board-snapshot", ({ roomId, imageData, requesterId }) => {
+        const room = rooms.get(roomId)
+        if (!room || room.phase !== "drawing" || !imageData) return
+        io.to(requesterId).emit("board-snapshot", { roomId, imageData })
     })
 
     // Handle disconnect - when user closes tab, loses connection, swipes back, etc.

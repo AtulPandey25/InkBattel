@@ -4,12 +4,13 @@ import Start from '../components/Start'
 import {useRoom} from '../store/roomStore'
 import socket from "../utilities/socket"
 import {exitRoom} from "../services/socket.services.js"
-import {sendMessage,updateScore,verifyGuess} from "../services/socket.services.js"
+import {sendMessage,updateScore,verifyGuess,chooseTimer,drawWord,manageTimer} from "../services/socket.services.js"
 import toast from "react-hot-toast"
 import {useNavigate} from "react-router-dom"
 import { useDispatch } from 'react-redux'
 import { createRooom } from '../features/userDetail'
 import Avatar from "../components/Avatar.jsx"
+import Player from "../components/Player.jsx"
 import {getScribbleWord} from "../utilities/scribbleWord.js"
 import Score from '../components/Score.jsx'
 import FinalScoreCard from '../components/FinalScoreCard.jsx'
@@ -17,6 +18,7 @@ const PlayGround = () => {
   const room = useRoom()
   const [message, setMessage] = useState('')
   const [correctWord, setCorrectWord] = useState('')
+  const chooseFallbackRef = useRef(null)
   const messagesEndRefDesktop = useRef(null)
   const messagesEndRefMobile = useRef(null)
   const playerEndRef = useRef(null)
@@ -34,6 +36,9 @@ const PlayGround = () => {
   }
    useEffect(() => {
     return () => {
+      if (chooseFallbackRef.current) {
+        clearTimeout(chooseFallbackRef.current)
+      }
       if (room.roomId) {
         exitRoom(room.roomId)
       }
@@ -79,6 +84,11 @@ const PlayGround = () => {
     }
 
     const handleRoundStarted = async ({roomId,players,drawerId,round,words,guessed,notGuessed})=>{
+      if (chooseFallbackRef.current) {
+        clearTimeout(chooseFallbackRef.current)
+        chooseFallbackRef.current = null
+      }
+      room?.setTimer(room?.roomDetail.settings.drawTime)
       room?.setIsPlaying(true)
       room?.setDrawerId(drawerId)
       room?.setRound(round)
@@ -89,7 +99,24 @@ const PlayGround = () => {
       room?.setDrawWord("")
       room?.resetHintState()
       room?.setDisplayScore(false)
+      // Start choosing countdown once per room from the drawer's client.
+      if (room?.sktId === drawerId) {
+        await chooseTimer(roomId, room?.sktId, drawerId)
+      }
       room?.setIsChoosing(true)
+
+      if (room?.sktId === drawerId) {
+        chooseFallbackRef.current = setTimeout(() => {
+          const index = Math.floor(Math.random() * words.length)
+          const fallbackWord = words[index]
+          if (!fallbackWord) return
+
+          room?.setIsChoosing(false)
+          drawWord(roomId, fallbackWord)
+          manageTimer(roomId)
+          chooseFallbackRef.current = null
+        }, 15000)
+      }
     }
 
     const handleRoundEnded = ({correctWord,guessed,notGuessed})=>{
@@ -99,13 +126,14 @@ const PlayGround = () => {
       room?.setNotGuessedPlayers(notGuessed || [])
       room?.setIsChoosing(false)
       room?.resetHintState()
+      room?.setTimer(15)
     }
 
-
-
-
-
     const handleGuessWord = ({word})=>{
+      if (chooseFallbackRef.current) {
+        clearTimeout(chooseFallbackRef.current)
+        chooseFallbackRef.current = null
+      }
       room?.setDrawWord(word)
       room?.resetHintState()
       room?.setIsChoosing(false)
@@ -178,6 +206,10 @@ const PlayGround = () => {
     
     
     return ()=>{
+      if (chooseFallbackRef.current) {
+        clearTimeout(chooseFallbackRef.current)
+        chooseFallbackRef.current = null
+      }
       socket.off("player-joined", handlePlayerJoined)
       socket.off("player-exited", handlePlayerExited)
       socket.off("new-message", handleNewMessage)
@@ -221,7 +253,7 @@ const sendMessages=(roomId,message)=>{
         {toast.success("You guessed It right !!!")
         room?.setGuessed(true)
         const score = decideScore();
-        updateScore(roomId,score)
+        updateScore(roomId,score,room?.drawerId)
         sendMessage(roomId,`${room?.myDetail.name} has guessed`)
       }
     }
@@ -307,7 +339,7 @@ const navbarWord = !hasSelectedWord
                       {/* <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-bold">
                         {player?.name?.charAt(0).toUpperCase() || 'P'}
                       </div> */}
-                      <div><Avatar className="w-15 h-15" colourr={player?.colour} eyee={player?.eyes} smilee={player?.smile} /></div>
+                      <div><Player className="w-15 h-15" colourr={player?.colour} eyee={player?.eyes} smilee={player?.smile} /></div>
                       <span className="font-semibold text-gray-800">{player?.name || 'Player'} {player.socketId===room?.sktId?"(You)":null}</span>
                     </div>
                     <span className={`text-sm font-bold ${hasGuessed ? 'text-green-700' : 'text-green-600'}`}>{player?.score}</span>
@@ -327,7 +359,7 @@ const navbarWord = !hasSelectedWord
         {/* Center - Canvas */}
         <div className="h-[70vh] md:h-auto flex-1 flex items-center justify-center bg-gray-100 p-2 md:p-4 min-w-0 overflow-hidden">
           <div className="bg-white rounded-lg shadow-2xl border-4 border-gray-300 w-full h-full max-w-5xl max-h-full flex items-center justify-center">
-            <Canvass/>
+            <Canvass key={room?.drawerId}/>
           </div>
         </div>
 

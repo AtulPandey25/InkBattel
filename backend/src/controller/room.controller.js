@@ -184,7 +184,7 @@ const drawWord=({roomId,word})=>{
 }
 
 
-const updateScore=({roomId,socketId,score})=>{
+const updateScore=({roomId,socketId,score,drawerId})=>{
     try{
         const room=rooms.get(roomId)
         if(!room) return null
@@ -202,6 +202,9 @@ const updateScore=({roomId,socketId,score})=>{
                      name:player.name,
                 })
                 room.notGuessed.splice(guesserIndex,1)
+            }
+            if(player.socketId===drawerId){
+                player.score=player.score+50;
             }
         });
         return room

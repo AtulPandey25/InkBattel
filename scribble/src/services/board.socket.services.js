@@ -27,3 +27,18 @@ export const stopOnBoard=(roomId)=>{
     }
 }
 
+export const requestBoardSync = (roomId) => {
+    try{
+        socket.emit("request-board-sync", { roomId })
+    }catch(error){
+        console.log(error)
+    }
+}
+
+export const sendBoardSnapshot = (roomId, imageData, requesterId) => {
+    try{
+        socket.emit("board-snapshot", { roomId, imageData, requesterId })
+    }catch(error){
+        console.log(error)
+    }
+}

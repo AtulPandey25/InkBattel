@@ -2,7 +2,7 @@ import React, { useCallback, useLayoutEffect,useState,useRef,useEffect} from 're
 import WordGuess from "../components/WordGuess.jsx"
 import Start from '../components/Start'
 import {useRoom} from '../store/roomStore'
-import {startOnBoard,drawOnBoard,stopOnBoard} from "../services/board.socket.services.js"
+import {startOnBoard,drawOnBoard,stopOnBoard,sendBoardSnapshot,requestBoardSync} from "../services/board.socket.services.js"
 import socket from "../utilities/socket.js"
 const Canvass = () => {
 const canvaRef=useRef(null)
@@ -67,6 +67,9 @@ useLayoutEffect(() => {
     }
   }
 
+
+
+
   const frameId = window.requestAnimationFrame(resize);
   window.addEventListener('resize', resize);
   const resizeObserver = typeof ResizeObserver !== 'undefined'
@@ -113,6 +116,51 @@ const getPointFromRatio = useCallback((xRatio, yRatio) => {
     y: yRatio * rect.height,
   };
 }, []);
+
+
+  const handleBoardSyncRequest=useCallback(({roomId,requesterId})=>{
+    if(!isDrawer || roomId!==room?.roomId) return
+    const imageData=canvaRef.current.toDataURL('image/png')
+    sendBoardSnapshot(roomId,imageData,requesterId)
+  }, [isDrawer, room?.roomId])
+  const handleBoardSnapshot=useCallback(({roomId,imageData,requesterId})=>{
+    if (roomId !== room?.roomId) return
+    const canvas=canvaRef.current
+    const ctx=canvas.getContext('2d')
+    const image=new Image()
+    image.onload=()=>{
+      const rect=canvas.getBoundingClientRect()
+      ctx.clearRect(0,0,rect.width,rect.height)
+      ctx.drawImage(image,0,0,rect.width,rect.height)
+    }
+    image.src=imageData
+  }, [room?.roomId])
+
+  useEffect(()=>{
+    socket.on("board-sync-request", handleBoardSyncRequest)
+    socket.on("board-snapshot", handleBoardSnapshot)
+    return()=>{
+    socket.off("board-sync-request", handleBoardSyncRequest)
+    socket.off("board-snapshot", handleBoardSnapshot)
+    }
+  }, [handleBoardSnapshot, handleBoardSyncRequest])
+
+
+  useEffect(()=>{
+    if (!showCanvasBoard || isDrawer || !room?.roomId) return
+
+    requestBoardSync(room?.roomId)
+
+    const onVisibilityChange=()=>{
+      if(document.visibilityState==="visible") requestBoardSync(room?.roomId)   
+    }
+    const onFocus = () => requestBoardSync(room?.roomId)
+
+    document.addEventListener("visibilitychange",onVisibilityChange)
+    window.addEventListener("focus", onFocus)
+    return()=>{document.removeEventListener("visibilitychange",onVisibilityChange)
+              window.removeEventListener("focus", onFocus)}
+  },[isDrawer, room?.roomId, showCanvasBoard])
 
 const stopDrawing = (e) => {
   const canvas = canvaRef.current;
@@ -224,9 +272,7 @@ const handlePencil=()=>{
 
 const renderStatusCard = (title, subtitle) => (
   <div className="flex w-full max-w-xl flex-col items-center justify-center rounded-2xl border-4 border-gray-300 bg-white px-8 py-12 text-center shadow-xl">
-    <p className="text-sm font-black uppercase tracking-[0.3em] text-gray-500">Scribble</p>
-    <h2 className="mt-4 text-3xl font-black text-gray-800 md:text-4xl">{title}</h2>
-    <p className="mt-3 text-base font-semibold text-gray-600 md:text-lg">{subtitle}</p>
+    <h2 className="mt-4 text-3xl font-black text-green-600 md:text-4xl">{subtitle}</h2>
   </div>
 )
 
@@ -238,13 +284,18 @@ const renderStatusCard = (title, subtitle) => (
           ? (isHost
               ? <Start/>
               : renderStatusCard('Wait', 'Waiting for the host to start the game'))
-          : room?.isChoosing
+                : room?.isChoosing
             ? (isDrawer
                 ? <WordGuess/>
-                : renderStatusCard('Get Ready', `${drawerName} is choosing the word`))
+                 : <div className="flex w-full max-w-xl flex-col items-center justify-center rounded-2xl border-4 border-gray-300 bg-white px-8 py-12 text-center shadow-xl">
+                     <h2 className="mt-4 text-3xl font-black md:text-4xl">
+                       <span className="text-green-600">{drawerName}</span>
+                       <span className="text-black"> is choosing the word</span>
+                     </h2>
+                   </div>)
             : <div className="w-full h-full flex flex-col items-center justify-center gap-3">
                 <div className="w-full max-w-[900px] h-[600px] rounded-2xl border-4 border-gray-300 bg-white shadow-xl overflow-hidden">
-                  <canvas ref={canvaRef} onMouseDown={startDrawing} onMouseUp={stopDrawing} onMouseMove={draw} onMouseLeave={stopDrawing} className="w-full h-full bg-white" />
+                  <canvas ref={canvaRef} onMouseDown={room?.sktId===room?.drawerId?startDrawing:null} onMouseUp={room?.sktId===room?.drawerId?stopDrawing:null} onMouseMove={room?.sktId===room?.drawerId?draw:null} onMouseLeave={room?.sktId===room?.drawerId?stopDrawing:null} className="w-full h-full bg-white" />
                 </div>
 
                 <div className="w-full max-w-[900px] rounded-2xl border-4 border-gray-300 bg-white p-3 shadow-lg">
