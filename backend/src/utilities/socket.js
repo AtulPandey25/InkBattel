@@ -1,6 +1,6 @@
 const {Server} = require("socket.io")
 const http =require('http')
-const {createRoom,joinRoom,exitRoom,sendMessage,gameStart,drawWord,updateScore,timerUpdate,deleteRoom,verifyGuess,getRoundScore,markRoundEnded}=require("../controller/room.controller.js")
+const {createRoom,joinRoom,exitRoom,sendMessage,gameStart,drawWord,updateScore,timerUpdate,deleteRoom,verifyGuess,getRoundScore,markRoundEnded,getHintsIndex}=require("../controller/room.controller.js")
 const {rooms}=require('../model/room.model.js')
 const express=require("express")
 const app=express()
@@ -172,15 +172,25 @@ io.on("connection",(socket)=>{
                 roundEnd(roomId,timerInterval)
             }
             if(room.guessWord.length==3 && room.settings.hints==3){
-                   if(time==room.settings.drawTime-21 ||  time==room.settings.drawTime-51){
-                   io.to(roomId).emit("show-hints")
+                if(time==room.settings.drawTime-21 ||  time==room.settings.drawTime-51){
+                    const hintIndex = getHintsIndex(roomId)
+                    if(hintIndex !== null) io.to(roomId).emit("show-hints", { hintIndex })
                 }
 
             }
             else{
-                  if(room.settings.hints==3 && (time==room.settings.drawTime-21 || time==room.settings.drawTime-41 || time==room.settings.drawTime-51)) io.to(roomId).emit("show-hints")
-                  else if(room.settings.hints==2 && (time==room.settings.drawTime-21 || time==room.settings.drawTime-41)) io.to(roomId).emit("show-hints")
-                  else if(room.settings.hints==1 && (time==room.settings.drawTime-21 )) io.to(roomId).emit("show-hints") 
+                if(room.settings.hints==3 && (time==room.settings.drawTime-21 || time==room.settings.drawTime-41 || time==room.settings.drawTime-51)){
+                    const hintIndex = getHintsIndex(roomId)
+                    if(hintIndex !== null) io.to(roomId).emit("show-hints", { hintIndex })
+                }
+                else if(room.settings.hints==2 && (time==room.settings.drawTime-21 || time==room.settings.drawTime-41)){
+                    const hintIndex = getHintsIndex(roomId)
+                    if(hintIndex !== null) io.to(roomId).emit("show-hints", { hintIndex })
+                }
+                else if(room.settings.hints==1 && (time==room.settings.drawTime-21 )){
+                    const hintIndex = getHintsIndex(roomId)
+                    if(hintIndex !== null) io.to(roomId).emit("show-hints", { hintIndex })
+                }
             }
         }, 1000);
 
@@ -237,6 +247,7 @@ io.on("connection",(socket)=>{
         socket.to(roomId).emit("stop-draw",{roomId})
     })
 
+    socket
 
     socket.on("request-board-sync", ({ roomId }) => {
         const room = rooms.get(roomId)

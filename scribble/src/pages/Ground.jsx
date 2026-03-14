@@ -24,6 +24,7 @@ const PlayGround = () => {
     if (savedSoundState === null) return true
     return savedSoundState === "on"
   })
+  const [isGameOn,setIsGameOn]=useState(false)
   const chooseFallbackRef = useRef(null)
   const settingsRef = useRef(null)
   const messagesEndRefDesktop = useRef(null)
@@ -107,7 +108,8 @@ const PlayGround = () => {
       room?.setDrawWord("")
       room?.resetHintState()
       room?.setDisplayScore(false)
-      // Start choosing countdown once per room from the drawer's client.
+      setIsGameOn(false)
+
       if (room?.sktId === drawerId) {
         await chooseTimer(roomId, room?.sktId, drawerId)
       }
@@ -118,13 +120,14 @@ const PlayGround = () => {
           const index = Math.floor(Math.random() * words.length)
           const fallbackWord = words[index]
           if (!fallbackWord) return
-
           room?.setIsChoosing(false)
+          setIsGameOn(true)
           drawWord(roomId, fallbackWord)
           manageTimer(roomId)
           chooseFallbackRef.current = null
         }, 15000)
       }
+      setIsGameOn(true)
     }
 
     const handleRoundEnded = ({correctWord,guessed,notGuessed})=>{
@@ -135,6 +138,7 @@ const PlayGround = () => {
       room?.setIsChoosing(false)
       room?.resetHintState()
       room?.setTimer(15)
+      setIsGameOn(false)
     }
 
     const handleGuessWord = ({word})=>{
@@ -152,6 +156,7 @@ const PlayGround = () => {
         room?.setGuessed(false)
         room?.setDrawWord("")
         room?.resetHintState()
+        setIsGameOn(false)
       }
       room?.setTimer(time)
     }
@@ -182,19 +187,13 @@ const PlayGround = () => {
     }
 
 
-    const handleHints=()=>{
+    const handleHints=({ hintIndex })=>{
       const currentRoom = useRoom.getState()
-      const availableIndexes = currentRoom.drawWord
-        .split("")
-        .map((char, index) => (char === " " ? -1 : index))
-        .filter((index) => index !== -1 && !currentRoom.revealedHintIndexes.includes(index))
-
-      if (availableIndexes.length === 0) {
+      if (typeof hintIndex !== "number" || hintIndex < 0) {
         return
       }
 
-      const randomIndex = availableIndexes[Math.floor(Math.random() * availableIndexes.length)]
-      currentRoom.addRevealedHintIndex(randomIndex)
+      currentRoom.addRevealedHintIndex(hintIndex)
       currentRoom.incrementHintsShown()
     }
 
@@ -273,8 +272,8 @@ const sendMessages=(roomId,message)=>{
      if(message.trim()!="" && room?.drawWord.toLowerCase()===message.toLowerCase()){
 
       if(room?.sktId===room?.drawerId) {
-        if(isSoundOn){
-          const audio=new Audio("../../public/sounds/faa.mp3")
+        if(isSoundOn && isGameOn && !room?.isChoosing){
+          const audio=new Audio("../../sounds/faa.mp3")
           audio.play()
         }
         return toast.error("You are not elligible")
@@ -288,8 +287,8 @@ const sendMessages=(roomId,message)=>{
       }
     }
     else{
-        if(isSoundOn){
-          const audio=new Audio("../../public/sounds/faa.mp3")
+        if(isSoundOn && isGameOn && !room?.isChoosing){
+          const audio=new Audio("../../sounds/faa.mp3")
           audio.play()
         }
         sendMessage(roomId,message)
@@ -300,13 +299,14 @@ const sendMessages=(roomId,message)=>{
   }
 }
 
+
 const isDrawer = room?.drawerId === room?.sktId
 const hasSelectedWord = room?.drawWord?.trim() !== ""
 const navbarWord = !hasSelectedWord
   ? "Waiting"
   : (isDrawer || room?.guessed || room?.displayScore)
     ? room?.drawWord
-    : getScribbleWord(room?.drawWord, room?.revealedHintIndexes)
+    : getScribbleWord(room?.roomId,room?.drawWord, room?.revealedHintIndexes)
 
 
 

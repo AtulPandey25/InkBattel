@@ -34,6 +34,7 @@ const createRoom=(socketId, playerDetail, roomSettings)=>{
             ],
             notGuessed:[],
             guessed:[],
+            revealedHintIndexes:[],
             settings: roomSettings.settings,
             messages:[],
             createdAt: Date.now()
@@ -144,6 +145,7 @@ const gameStart=(roomId)=>{
         if(!room) return null
         if(room.players.length===0) return null
         room.guessWord=""
+        room.revealedHintIndexes=[]
         room.guessed=[];
         room.notGuessed=[...room.players]
         if(!room.isPlaying){
@@ -186,6 +188,7 @@ const drawWord=({roomId,word})=>{
         const room=rooms.get(roomId)
         if(!room) return null
         room.guessWord=word;
+        room.revealedHintIndexes=[]
         room.phase = "drawing"
         return room;
     }catch(error){
@@ -287,5 +290,27 @@ const getRoundScore=(roomId)=>{
     }
 }
 
+const getHintsIndex=(roomId)=>{
+    try{
+        const room=rooms.get(roomId)
+        if(!room) return null
+        if(!room.guessWord) return null
 
-module.exports={joinRoom,createRoom,exitRoom,sendMessage,gameStart,drawWord,updateScore,timerUpdate,deleteRoom,verifyGuess,getRoundScore,markRoundEnded}
+        const availableIndexes = room.guessWord
+            .split("")
+            .map((char, index) => (char === " " ? -1 : index))
+            .filter((index) => index !== -1 && !room.revealedHintIndexes.includes(index))
+
+        if(availableIndexes.length===0) return null
+
+        const randomIndex = availableIndexes[Math.floor(Math.random() * availableIndexes.length)]
+        room.revealedHintIndexes.push(randomIndex)
+        return randomIndex
+    }catch(error){
+        console.log(error)
+        return null
+    }
+}
+
+
+module.exports={joinRoom,createRoom,exitRoom,sendMessage,gameStart,drawWord,updateScore,timerUpdate,deleteRoom,verifyGuess,getRoundScore,markRoundEnded,getHintsIndex}

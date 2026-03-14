@@ -1,6 +1,5 @@
-export const getScribbleWord = (word = "", revealedHintIndexes = []) => {
+export const getScribbleWord = (roomId,word = "", revealedHintIndexes = []) => {
     const revealedHints = new Set(revealedHintIndexes)
-
     return word
         .split("")
         .map((char, index) => {
@@ -12,6 +11,8 @@ export const getScribbleWord = (word = "", revealedHintIndexes = []) => {
             return "_"
         })
         .join(" ")
+
+
 }
 
 
