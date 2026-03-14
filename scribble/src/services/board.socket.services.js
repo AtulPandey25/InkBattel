@@ -27,6 +27,15 @@ export const stopOnBoard=(roomId)=>{
     }
 }
 
+export const clearOnBoard=(roomId)=>{
+    try{
+        socket.emit("clear-board",{roomId})
+    }
+    catch(error){
+        console.log(error)
+    }
+}
+
 export const requestBoardSync = (roomId) => {
     try{
         socket.emit("request-board-sync", { roomId })

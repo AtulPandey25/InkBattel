@@ -2,7 +2,7 @@ import React, { useCallback, useLayoutEffect,useState,useRef,useEffect} from 're
 import WordGuess from "../components/WordGuess.jsx"
 import Start from '../components/Start'
 import {useRoom} from '../store/roomStore'
-import {startOnBoard,drawOnBoard,stopOnBoard,sendBoardSnapshot,requestBoardSync} from "../services/board.socket.services.js"
+import {startOnBoard,drawOnBoard,stopOnBoard,sendBoardSnapshot,requestBoardSync,clearOnBoard} from "../services/board.socket.services.js"
 import socket from "../utilities/socket.js"
 const Canvass = () => {
 const canvaRef=useRef(null)
@@ -123,6 +123,7 @@ const getPointFromRatio = useCallback((xRatio, yRatio) => {
     const imageData=canvaRef.current.toDataURL('image/png')
     sendBoardSnapshot(roomId,imageData,requesterId)
   }, [isDrawer, room?.roomId])
+  
   const handleBoardSnapshot=useCallback(({roomId,imageData,requesterId})=>{
     if (roomId !== room?.roomId) return
     const canvas=canvaRef.current
@@ -198,6 +199,11 @@ const handleStartBoard = useCallback(({xRatio,yRatio}) => {
   ctx.moveTo(x, y);
 }, [getPointFromRatio]);
 
+const handleClearBoard=({roomId})=>{
+    const canvas=canvaRef.current
+    const ctx=canvas.getContext('2d')
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
 
 const handleDrawBoard = useCallback(({xRatio,yRatio,tool,pencilStrokk,eraserStrokk,pencilClrr}) => {
   const canvas = canvaRef.current;
@@ -213,6 +219,7 @@ const handleDrawBoard = useCallback(({xRatio,yRatio,tool,pencilStrokk,eraserStro
     return;
   }
 
+
   ctx.lineWidth = tool==="pencil" ? pencilStrokk : eraserStrokk;
   tool==="pencil"?ctx.strokeStyle = pencilClrr:ctx.strokeStyle = "white";
   ctx.lineTo(x,y);
@@ -223,10 +230,13 @@ useEffect(()=>{
   socket.on("start-draw",handleStartBoard)
   socket.on("draw-draw",handleDrawBoard)
   socket.on("stop-draw",handleStopBoard)
+  socket.on("clear-draw",handleClearBoard)
   return ()=>{
     socket.off("start-draw",handleStartBoard)
     socket.off("draw-draw",handleDrawBoard)
     socket.off("stop-draw",handleStopBoard)
+    socket.off("clear-draw",handleClearBoard)
+
   }
 },[handleDrawBoard, handleStartBoard, handleStopBoard])
 
@@ -259,6 +269,12 @@ const draw = (e) => {
   drawOnBoard(xRatio,yRatio,tool,room?.roomId,pencilStrok,eraserStrok,pencilClr)
 };
 
+const handleClear=()=>{
+  const canvas=canvaRef.current
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height)
+  clearOnBoard(room?.roomId)
+}
 const handleEraser=()=>{
   setTool("eraser")
   setClr("white")
@@ -416,13 +432,14 @@ const renderStatusCard = (title, subtitle) => (
 
                     <button
                       type="button"
+                      onClick={room?.sktId==room?.drawerId?handleClear:null}
                       className="flex items-center gap-2 rounded-xl border-2 border-gray-500 bg-gray-100 px-3 py-2 font-bold text-gray-700 transition-colors hover:bg-gray-200"
                     >
                       <svg className="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M18 6 6 18" />
                         <path d="m6 6 12 12" />
                       </svg>
-                      <span>Cancel</span>
+                      <span>Clear</span>
                     </button>
                   </div>
                 </div>

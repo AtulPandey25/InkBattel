@@ -313,4 +313,19 @@ const getHintsIndex=(roomId)=>{
 }
 
 
-module.exports={joinRoom,createRoom,exitRoom,sendMessage,gameStart,drawWord,updateScore,timerUpdate,deleteRoom,verifyGuess,getRoundScore,markRoundEnded,getHintsIndex}
+const getPublicRoomId=()=>{
+    try{
+        for(const room of rooms.values()){
+            if(room.settings.visibility==="public" && room.settings.numPlayers>room.players.length){
+                return room.roomId
+            }
+        }
+        return null
+    }   
+    catch(error){
+        console.log(error)
+        return null
+    }
+}
+
+module.exports={joinRoom,createRoom,exitRoom,sendMessage,gameStart,drawWord,updateScore,timerUpdate,deleteRoom,verifyGuess,getRoundScore,markRoundEnded,getHintsIndex,getPublicRoomId}

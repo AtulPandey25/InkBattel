@@ -5,7 +5,7 @@ import { updateAvatar,createRooom } from '../features/userDetail'
 import {useParams} from "react-router-dom"
 import {useRoom} from "../store/roomStore"
 import {useNavigate} from "react-router-dom"
-import {joinRoom} from "../services/socket.services.js"
+import {joinRoom,joinPublicRoom} from "../services/socket.services.js"
 import socket from '../utilities/socket.js'
 import toast from "react-hot-toast"
 const Hero = () => {
@@ -173,6 +173,8 @@ const submit=(e)=>{
   dispatch(updateAvatar(payload))
   try{
     localStorage.setItem("userDetail", JSON.stringify({name,clr,eye,sm}));
+    console.log("RandomRoomCheck")
+    joinPublicRoom(playerDetail)
   }catch(err){
     console.warn('Failed to save userDetail to localStorage', err);
   }

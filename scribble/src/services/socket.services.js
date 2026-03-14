@@ -92,3 +92,11 @@ export const chooseTimer=(roomId,socketId,drawerId)=>{
         console.log(error)
     }
 }
+
+export const joinPublicRoom=(playerDetail)=>{
+    try{
+        socket.emit("public-room-join",{playerDetail})
+    }catch(error){
+        console.log(error)
+    }
+}

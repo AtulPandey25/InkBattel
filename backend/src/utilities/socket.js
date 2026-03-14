@@ -1,6 +1,6 @@
 const {Server} = require("socket.io")
 const http =require('http')
-const {createRoom,joinRoom,exitRoom,sendMessage,gameStart,drawWord,updateScore,timerUpdate,deleteRoom,verifyGuess,getRoundScore,markRoundEnded,getHintsIndex}=require("../controller/room.controller.js")
+const {createRoom,joinRoom,exitRoom,sendMessage,gameStart,drawWord,updateScore,timerUpdate,deleteRoom,verifyGuess,getRoundScore,markRoundEnded,getHintsIndex,getPublicRoomId}=require("../controller/room.controller.js")
 const {rooms}=require('../model/room.model.js')
 const express=require("express")
 const app=express()
@@ -230,7 +230,7 @@ io.on("connection",(socket)=>{
 
 
     socket.on("guessed-message",({roomId,socketId,name})=>{
-        io.to.emit("guessed-edit",({roomId,socketId,name}))
+        io.to(roomId).emit("guessed-edit",({roomId,socketId,name}))
     })
 
 
@@ -247,6 +247,10 @@ io.on("connection",(socket)=>{
         socket.to(roomId).emit("stop-draw",{roomId})
     })
 
+    socket.on("clear-board",({roomId})=>{
+        socket.to(roomId).emit("clear-draw",{roomId})
+    })
+
     socket
 
     socket.on("request-board-sync", ({ roomId }) => {
@@ -259,6 +263,21 @@ io.on("connection",(socket)=>{
         const room = rooms.get(roomId)
         if (!room || room.phase !== "drawing" || !imageData) return
         io.to(requesterId).emit("board-snapshot", { roomId, imageData })
+    })
+
+    socket.on("public-room-join",({playerDetail})=>{
+        const roomId=getPublicRoomId()
+        if(!roomId){
+            socket.emit("join-room-failed",{message:"No Public room found create one !!!"})
+            return;
+        }
+        const rooom=joinRoom(socket,roomId,playerDetail)
+        if(!rooom){
+            socket.emit("join-room-failed",{message:"Unable to join room"})
+            return;
+        }
+        socketRooms.set(socket.id, roomId) // Track which room this socket is in
+        io.to(roomId).emit("player-joined",{roomId, playerDetail, socketId:socket.id,rooom})
     })
 
     // Handle disconnect - when user closes tab, loses connection, swipes back, etc.

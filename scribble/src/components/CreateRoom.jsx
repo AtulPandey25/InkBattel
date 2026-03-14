@@ -14,6 +14,7 @@ const CreateRoom = () => {
   const [roomName, setRoomName] = useState("");
   const [drawTime, setDrawTime] = useState(80);
   const [wordCount, setWordCount] = useState(3);
+  const [visibility,setVisibility]=useState("public")
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -53,6 +54,7 @@ const CreateRoom = () => {
           numPlayers,
           drawTime,
           wordCount,
+          visibility,
         }
       };
       await createRoom(roomSettings, playerDetail);
@@ -129,6 +131,13 @@ const CreateRoom = () => {
               ))}
             </select>
           </div>
+          <div className="flex flex-col items-start">
+            <label className="font-semibold mb-1">Room Visibility:</label>
+            <select value={visibility} onChange={e => setVisibility(e.target.value)} className="border px-2 py-1 rounded w-full min-w-45">
+              <option value="private">Private</option>
+              <option value="public">Public</option>
+            </select>
+          </div>
         </form>
         <div className="absolute left-0 bottom-0 w-full flex flex-row items-center mobile-bottom-btns" style={{height: '70px', gap: 0, padding: 0}}>
           <button
@@ -149,7 +158,7 @@ const CreateRoom = () => {
           </button>
         </div>
       </div>
-      {/* All mobile and button styles are now in index.css for global control. */}
+
     </div>
     </div>
   );

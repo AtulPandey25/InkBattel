@@ -37,10 +37,10 @@ const PlayGround = () => {
 
 
   const decideScore=()=>{
-    if(room?.guessedPlayers.length===0) return 200;
-    else if(room?.guessedPlayers.length===1) return 150;
-    else if(room?.guessedPlayers.length===2) return 100;
-    else return 50;
+    if(room?.guessedPlayers.length===0) return 200+room?.timer;
+    else if(room?.guessedPlayers.length===1) return 150+room?.timer;
+    else if(room?.guessedPlayers.length===2) return 100+room?.timer;
+    else return 50+room?.timer;
   }
    useEffect(() => {
     return () => {
