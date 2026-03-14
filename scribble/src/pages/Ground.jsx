@@ -31,7 +31,7 @@ const PlayGround = () => {
   const messagesEndRefMobile = useRef(null)
   const playerEndRef = useRef(null)
   const playerEndRefMobile = useRef(null)
-
+  const [time,setTime]=useState(3)
   const navigate=useNavigate()
   const dispatch = useDispatch()
 
@@ -197,6 +197,14 @@ const PlayGround = () => {
       currentRoom.incrementHintsShown()
     }
 
+    const handleNoPlayerLeft=({roomId})=>{
+      toast.error(`Everyone Left Closing room in ${time} seconds`)
+      setTimeout(() => {
+        dispatch(createRooom(false))
+        navigate("/")
+      }, 3000);
+    }
+
     socket.on("player-joined", handlePlayerJoined)
     socket.on("player-exited", handlePlayerExited)
     socket.on("new-message", handleNewMessage)
@@ -208,6 +216,7 @@ const PlayGround = () => {
     socket.on("verified", handleVerified)
     socket.on("score-updated", handleScoreUpdated)
     socket.on("show-hints", handleHints)
+    socket.on("no-player-left",handleNoPlayerLeft)
     
     
     return ()=>{
@@ -226,6 +235,8 @@ const PlayGround = () => {
       socket.off("verified", handleVerified)
       socket.off("score-updated", handleScoreUpdated)
       socket.off("show-hints", handleHints)
+      socket.off("no-player-left",handleNoPlayerLeft)
+
     }
   },[])
 

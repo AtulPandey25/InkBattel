@@ -107,7 +107,18 @@ const exitRoom=(roomId,socketId)=>{
             room.guessed.splice(guessedIndex,1)
         }
 
-        return room;
+        if(room.players.length===1){
+            const rm={...room}
+            rooms.delete(roomId)
+            console.log(rm)
+            return rm
+        }
+        else if(room.players.length===0){
+            rooms.delete(roomId)
+            return null
+        }
+
+        else return room;
     }catch(error){
         console.log(error)
         return null

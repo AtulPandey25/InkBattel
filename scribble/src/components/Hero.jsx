@@ -124,18 +124,15 @@ const [name,setName]=useState("")
 
   const dispatch = useDispatch()
   const playerDetail =useSelector((state)=>state?.avatarUser)
-  const handleSetAvatar=(ava)=>{
-    setName(ava.name || "");
-    seteye(Number(ava.eye) || 0);
-    setclr(Number(ava.clr) || 0);
-    setSm(Number(ava.sm) || 0);
-  } 
   useEffect(()=>{
     const stored = localStorage.getItem("userDetail");
     if(stored){
       try{
         const ava = JSON.parse(stored);
-        handleSetAvatar(ava)
+        setName(ava.name || "");
+        seteye(Number(ava.eye) || 0);
+        setclr(Number(ava.clr) || 0);
+        setSm(Number(ava.sm) || 0);
         const restored = { name: (ava.name || ""), colour: colours[Number(ava.clr) || 0], eyes: eyes[Number(ava.eye) || 0], smile: smile[Number(ava.sm) || 0] };
         dispatch(updateAvatar(restored));
       }catch(err){
@@ -173,8 +170,7 @@ const submit=(e)=>{
   dispatch(updateAvatar(payload))
   try{
     localStorage.setItem("userDetail", JSON.stringify({name,clr,eye,sm}));
-    console.log("RandomRoomCheck")
-    joinPublicRoom(playerDetail)
+    joinPublicRoom(payload)
   }catch(err){
     console.warn('Failed to save userDetail to localStorage', err);
   }

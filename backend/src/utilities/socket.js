@@ -50,17 +50,21 @@ io.on("connection",(socket)=>{
             socket.emit("join-room-failed",{message:"Unable to join room"})
             return;
         }
-        socketRooms.set(socket.id, roomId) // Track which room this socket is in
+        socketRooms.set(socket.id, roomId)
         io.to(roomId).emit("player-joined",{roomId, playerDetail, socketId:socket.id,rooom})
     })
     
     socket.on("exit-room",({roomId})=>{
         const socketId=socket.id;
         const rooom=exitRoom(roomId,socketId)
-        if(!rooom) return null
         socket.leave(roomId)
-        socketRooms.delete(socket.id) // Remove from tracking
-        io.to(roomId).emit("player-exited",{roomId,rooom,socketId})
+        socketRooms.delete(socket.id)
+        if(rooom){
+            io.to(roomId).emit("player-exited",{roomId,rooom,socketId})
+            if(rooom.isPlaying && rooom.players.length===1){
+                io.to(roomId).emit("no-player-left",{roomId})
+            }  
+        }
     })
 
     socket.on("send-message",({roomId,message})=>{
@@ -287,6 +291,10 @@ io.on("connection",(socket)=>{
             const rooom = exitRoom(roomId, socket.id)
             if(rooom){
                 io.to(roomId).emit("player-exited",{roomId,rooom,socketId:socket.id})
+                    if(rooom.isPlaying && rooom.players.length===1){
+                    console.log("Noo Leftt")
+                    io.to(roomId).emit("no-player-left",{roomId})
+                }  
             }
             socketRooms.delete(socket.id)
         }
