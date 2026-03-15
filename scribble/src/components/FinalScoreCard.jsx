@@ -2,9 +2,13 @@ import React from 'react'
 import Avatar from './Avatar'
 import { useRoom } from '../store/roomStore'
 import { useNavigate } from 'react-router-dom'
-import { exitRoom } from '../services/socket.services'
+import { exitRoom,replay} from '../services/socket.services'
+import { useDispatch,useSelector } from 'react-redux'
+
 
 const FinalScoreCard = ({ players = [] }) => {
+  
+  const playerDetail =useSelector((state)=>state?.avatarUser)
   const sortedPlayers = [...players].sort((a, b) => b.score - a.score)
   const top3 = sortedPlayers.slice(0, 3)
   const remaining = sortedPlayers.slice(3)
@@ -18,6 +22,8 @@ const FinalScoreCard = ({ players = [] }) => {
     navigate("/")
     room?.setDisplayFinalScore(false)
   }
+
+  const roomSettings={roomName:room?.roomName,settings:room?.roomDetail.settings}
 
   return (
     <div className="paper-card w-full" style={{ maxWidth: '800px', margin: 0, paddingTop: '28px' }}>
@@ -128,7 +134,7 @@ const FinalScoreCard = ({ players = [] }) => {
         </button>
         <button
           onClick={() => {
-            // Replay logic will be implemented by user
+            replay(room?.roomId,playerDetail,roomSettings)
           }}
           className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-colors"
         >

@@ -1,6 +1,6 @@
 const {Server} = require("socket.io")
 const http =require('http')
-const {createRoom,joinRoom,exitRoom,sendMessage,gameStart,drawWord,updateScore,timerUpdate,deleteRoom,verifyGuess,getRoundScore,markRoundEnded,getHintsIndex,getPublicRoomId}=require("../controller/room.controller.js")
+const {createRoom,joinRoom,exitRoom,sendMessage,gameStart,drawWord,updateScore,timerUpdate,deleteRoom,verifyGuess,getRoundScore,markRoundEnded,getHintsIndex,getPublicRoomId,replay}=require("../controller/room.controller.js")
 const {rooms}=require('../model/room.model.js')
 const express=require("express")
 const app=express()
@@ -25,8 +25,7 @@ io.on("connection",(socket)=>{
     socket.on("create-room",({roomSettings, playerDetail})=>{
         const rooom=createRoom(socket.id, playerDetail, roomSettings)
         if(!rooom){
-            console.log("Error during room Creation")
-            return;
+            return null;
         }
         socket.join(rooom.roomId)
         socketRooms.set(socket.id, rooom.roomId) // Track which room this socket is in
@@ -237,6 +236,25 @@ io.on("connection",(socket)=>{
         io.to(roomId).emit("guessed-edit",({roomId,socketId,name}))
     })
 
+
+    socket.on("replay",({roomId,playerDetail,roomSettings})=>{
+        const {create,rooom}=replay(roomId,socket.id,playerDetail,roomSettings,socket)
+        if(!rooom){
+            socket.emit("join-room-failed",{message:"Unable to join room"})
+            return;
+        }
+        if(create){
+            socket.join(rooom.roomId)
+            socketRooms.set(socket.id, rooom.roomId) // Track which room this socket is in
+            socket.emit("room-created",{roomId: rooom.roomId, rooom, playerDetail,socketId:socket.id})
+            io.to(roomId).emit("replayed",{roomId,rooom,playerDetail,socketId:socket.id})
+        }
+        else{
+            socketRooms.set(socket.id, roomId)
+            io.to(roomId).emit("player-joined",{roomId, playerDetail, socketId:socket.id,rooom})
+            io.to(roomId).emit("replayed",{roomId,rooom,playerDetail,socketId:socket.id})
+        }
+    })
 
 
     socket.on("start-board",({xRatio,yRatio,roomId})=>{

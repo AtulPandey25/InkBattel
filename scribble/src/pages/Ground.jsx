@@ -205,6 +205,20 @@ const PlayGround = () => {
       }, 3000);
     }
 
+    const handleReplay=({roomId,rooom,playerDetail,socketId})=>{
+      // room?.setRoomDetail(rooom)
+      // room?.setPlayers(rooom.players)
+      // room?.setPlayers(rooom.players)
+      // room?.setRoomId(roomId)
+      // room?.setHostId(rooom.hostId)
+      // room?.setRoomDetail(rooom)
+      // room?.setRound(rooom.round)
+      // room?.setTimer(rooom.settings.drawTime)
+      // room?.setIsPlaying(Boolean(rooom.isPlaying))
+      // room?.setMessages(rooom.messages)
+      if(room?.sktId===socketId) room?.setDisplayFinalScore(false)
+    }
+    
     socket.on("player-joined", handlePlayerJoined)
     socket.on("player-exited", handlePlayerExited)
     socket.on("new-message", handleNewMessage)
@@ -217,7 +231,7 @@ const PlayGround = () => {
     socket.on("score-updated", handleScoreUpdated)
     socket.on("show-hints", handleHints)
     socket.on("no-player-left",handleNoPlayerLeft)
-    
+    socket.on("replayed",handleReplay)
     
     return ()=>{
       if (chooseFallbackRef.current) {
@@ -236,6 +250,7 @@ const PlayGround = () => {
       socket.off("score-updated", handleScoreUpdated)
       socket.off("show-hints", handleHints)
       socket.off("no-player-left",handleNoPlayerLeft)
+      socket.off("replayed",handleReplay)
 
     }
   },[])

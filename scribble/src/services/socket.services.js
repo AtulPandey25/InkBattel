@@ -100,3 +100,12 @@ export const joinPublicRoom=(playerDetail)=>{
         console.log(error)
     }
 }
+
+export const replay=(roomId,playerDetail,roomSettings)=>{
+    try{
+        console.log(roomSettings)
+        socket.emit("replay",{roomId,playerDetail,roomSettings})
+    }catch(error){
+        console.log(error)
+    }
+}

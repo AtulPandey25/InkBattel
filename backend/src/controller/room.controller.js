@@ -107,7 +107,7 @@ const exitRoom=(roomId,socketId)=>{
             room.guessed.splice(guessedIndex,1)
         }
 
-        if(room.players.length===1){
+        if(room.players.length===1 && room.isPlaying){
             const rm={...room}
             rooms.delete(roomId)
             console.log(rm)
@@ -339,4 +339,28 @@ const getPublicRoomId=()=>{
     }
 }
 
-module.exports={joinRoom,createRoom,exitRoom,sendMessage,gameStart,drawWord,updateScore,timerUpdate,deleteRoom,verifyGuess,getRoundScore,markRoundEnded,getHintsIndex,getPublicRoomId}
+
+const replay=(roomId,socketId,playerDetail,roomSettings,socket)=>{
+    try{
+        const room=rooms.get(roomId)
+        if(!room){
+            const rooom=createRoom(socketId, playerDetail, roomSettings)
+            if(!rooom) return {create:false,rooom:null}
+            const oldRoomId=rooom.roomId
+            rooms.delete(oldRoomId)
+            rooom.roomId=roomId
+            rooms.set(roomId, rooom);
+            return {create:true,rooom}
+        }
+        else{
+            const rooom=joinRoom(socket,roomId,playerDetail)
+            if(!rooom) return {create:false,rooom:null}
+            return {create:false,rooom}
+        }
+
+    }catch(error){
+        console.log(error)
+        return null
+    }
+}
+module.exports={joinRoom,createRoom,exitRoom,sendMessage,gameStart,drawWord,updateScore,timerUpdate,deleteRoom,verifyGuess,getRoundScore,markRoundEnded,getHintsIndex,getPublicRoomId,replay}
