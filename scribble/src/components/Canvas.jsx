@@ -90,7 +90,9 @@ useLayoutEffect(() => {
 
 const getPosFromEvent = (nativeEvent) => {
   const rect = canvaRef.current.getBoundingClientRect();
-  return { x: nativeEvent.clientX - rect.left, y: nativeEvent.clientY - rect.top };
+  const clientX = nativeEvent.clientX !== undefined ? nativeEvent.clientX : nativeEvent.touches?.[0]?.clientX || 0;
+  const clientY = nativeEvent.clientY !== undefined ? nativeEvent.clientY : nativeEvent.touches?.[0]?.clientY || 0;
+  return { x: clientX - rect.left, y: clientY - rect.top };
 };
 
 const getRatioFromPoint = (x, y) => {
@@ -269,6 +271,39 @@ const draw = (e) => {
   drawOnBoard(xRatio,yRatio,tool,room?.roomId,pencilStrok,eraserStrok,pencilClr)
 };
 
+const handleTouchStart = (e) => {
+  if (!isDrawer) return;
+  const native = e.nativeEvent;
+  const { x, y } = getPosFromEvent(native);
+  const { xRatio, yRatio } = getRatioFromPoint(x, y);
+  const canvas = canvaRef.current;
+  const ctx = canvas.getContext('2d');
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  localDrawingRef.current = true
+  setIsDrawing(true);
+  native.preventDefault();
+  startOnBoard(xRatio, yRatio, room?.roomId)
+};
+
+const handleTouchMove = (e) => {
+  if (!isDrawing) return;
+  const native = e.nativeEvent;
+  if (!native.touches || !native.touches.length) { stopDrawing(e); return; }
+  const { x, y } = getPosFromEvent(native);
+  const { xRatio, yRatio } = getRatioFromPoint(x, y);
+  const ctx = canvaRef.current.getContext('2d');
+  ctx.lineWidth = tool==="pencil" ? pencilStrok : eraserStrok;
+  tool==="pencil"?ctx.strokeStyle = pencilClr:ctx.strokeStyle = "white";
+  ctx.lineTo(x, y);
+  ctx.stroke();
+  drawOnBoard(xRatio, yRatio, tool, room?.roomId, pencilStrok, eraserStrok, pencilClr)
+};
+
+const handleTouchEnd = (e) => {
+  stopDrawing(e);
+};
+
 const handleClear=()=>{
   const canvas=canvaRef.current
   const ctx=canvas.getContext('2d');
@@ -311,7 +346,7 @@ const renderStatusCard = (title, subtitle) => (
                    </div>)
             : <div className="w-full h-full flex flex-col items-center justify-center gap-3">
                 <div className="w-full max-w-[900px] h-[600px] rounded-2xl border-4 border-gray-300 bg-white shadow-xl overflow-hidden">
-                  <canvas ref={canvaRef} onMouseDown={room?.sktId===room?.drawerId?startDrawing:null} onMouseUp={room?.sktId===room?.drawerId?stopDrawing:null} onMouseMove={room?.sktId===room?.drawerId?draw:null} onMouseLeave={room?.sktId===room?.drawerId?stopDrawing:null} className="w-full h-full bg-white" />
+                  <canvas ref={canvaRef} onMouseDown={room?.sktId===room?.drawerId?startDrawing:null} onMouseUp={room?.sktId===room?.drawerId?stopDrawing:null} onMouseMove={room?.sktId===room?.drawerId?draw:null} onMouseLeave={room?.sktId===room?.drawerId?stopDrawing:null} onTouchStart={room?.sktId===room?.drawerId?handleTouchStart:null} onTouchMove={room?.sktId===room?.drawerId?handleTouchMove:null} onTouchEnd={room?.sktId===room?.drawerId?handleTouchEnd:null} onTouchCancel={room?.sktId===room?.drawerId?handleTouchEnd:null} className="w-full h-full bg-white" style={{touchAction: 'none'}} />
                 </div>
 
                 <div className="w-full max-w-[900px] rounded-2xl border-4 border-gray-300 bg-white p-3 shadow-lg">

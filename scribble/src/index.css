@@ -27,6 +27,13 @@
   .mobile-bottom-btns {
     gap: 0 !important;
     padding: 0 !important;
+    position: fixed !important;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 60;
+    background: #fff;
+    border-top: 2px solid #d1d5db;
   }
   .mobile-create-btn,
   .mobile-home-btn {
@@ -45,24 +52,26 @@
     border-radius: 0 0 8px 0 !important;
     border-left-width: 1.5px !important;
   }
+
+  .create-room-container {
+    align-items: flex-start !important;
+    padding-bottom: 78px !important;
+    position: relative;
+  }
+
+  .mobile-form {
+    max-height: calc(100dvh - 235px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-top: 10px;
+    padding-bottom: 100px;
+  }
 }
 @media (max-width: 600px) {
   .paper-card > div {
     flex-direction: column !important;
     gap: 0.8rem !important;
     align-items: stretch;
-  }
-
-  .create-room-container {
-    align-items: flex-start !important;
-    padding-bottom: 70px;
-  }
-
-  .mobile-form {
-    max-height: calc(100vh - 120px);
-    overflow-y: auto;
-    margin-top: 10px;
-    padding-bottom: 90px;
   }
 
   .pop-btn {
