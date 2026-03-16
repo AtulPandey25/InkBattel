@@ -398,9 +398,9 @@ const navbarWord =()=>{
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+      <div className="flex-1 flex flex-col xl:flex-row overflow-hidden">
         {/* Left Sidebar - Players List (Desktop) */}
-        <div className="hidden md:flex w-64 bg-white border-r-4 border-gray-300 flex-col shadow-lg flex-shrink-0">
+        <div className="hidden xl:flex w-64 bg-white border-r-4 border-gray-300 flex-col shadow-lg flex-shrink-0">
           {/* Players Section */}
           <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-4">
             <h2 className="text-xl font-bold">Players</h2>
@@ -436,14 +436,14 @@ const navbarWord =()=>{
         </div>
 
         {/* Center - Canvas */}
-        <div className="h-[70vh] md:h-auto flex-1 flex items-center justify-center bg-gray-100 p-2 md:p-4 min-w-0 overflow-hidden">
+        <div className="h-[70vh] xl:h-auto flex-1 flex items-center justify-center bg-gray-100 p-2 xl:p-4 min-w-0 overflow-hidden">
           <div className="bg-white rounded-lg shadow-2xl border-4 border-gray-300 w-full h-full max-w-5xl max-h-full flex items-center justify-center">
             <Canvass key={room?.drawerId}/>
           </div>
         </div>
 
         {/* Right Sidebar - Chat (Desktop) */}
-        <div className="hidden md:flex w-80 bg-white border-l-4 border-gray-300 flex-col shadow-lg flex-shrink-0">
+        <div className="hidden xl:flex w-80 bg-white border-l-4 border-gray-300 flex-col shadow-lg flex-shrink-0">
           <div className="bg-gradient-to-r from-green-500 to-green-600 text-white py-3 px-4">
             <h2 className="text-xl font-bold">Chat</h2>
           </div>
@@ -512,7 +512,7 @@ const navbarWord =()=>{
         </div>
 
         {/* Mobile Bottom Section - Players & Messages (20vh) */}
-        <div className="md:hidden flex h-[20vh] w-full border-t-4 border-gray-300">
+        <div className="xl:hidden flex h-[20vh] w-full border-t-4 border-gray-300">
           {/* Players List (Mobile - Left 50%) */}
           <div className="w-1/2 bg-white border-r-2 border-gray-300 flex flex-col overflow-hidden">
             <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2 px-3">
@@ -582,7 +582,7 @@ const navbarWord =()=>{
         </div>
 
         {/* Mobile Message Input (10vh) */}
-        <div className="md:hidden h-[10vh] w-full bg-white border-t-4 border-gray-300 p-2 flex items-center">
+        <div className="xl:hidden h-[10vh] w-full bg-white border-t-4 border-gray-300 p-2 flex items-center">
           <div className="flex gap-2 w-full">
             <input
               type="text"

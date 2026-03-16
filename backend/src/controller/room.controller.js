@@ -282,7 +282,9 @@ const verifyGuess=({roomId,message})=>{
      try{
         const room=rooms.get(roomId)
         if(!room) return null
-        if(message===room.guessWord) return {room,res:true}
+        const normalizedMessage = String(message || "").trim().toLowerCase()
+        const normalizedWord = String(room.guessWord || "").trim().toLowerCase()
+        if(normalizedMessage!=="" && normalizedMessage===normalizedWord) return {room,res:true}
         else return {room,res:false}
     }catch(error){
         console.log(error)
