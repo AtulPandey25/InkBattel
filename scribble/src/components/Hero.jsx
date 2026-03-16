@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import Avatar from './avatar'
+import Avatar from './Avatar.jsx'
 import { useDispatch,useSelector } from 'react-redux'
 import { updateAvatar,createRooom } from '../features/userDetail'
 import {useParams} from "react-router-dom"
