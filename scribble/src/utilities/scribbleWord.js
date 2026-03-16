@@ -1,19 +1,19 @@
-export const getScribbleWord = (roomId,word = "", revealedHintIndexes = []) => {
-    const revealedHints = new Set(revealedHintIndexes)
-    return word
-        .split("")
-        .map((char, index) => {
-            if (char === " ") return " "
-            if (revealedHints.has(index)) {
-                return char
-            }
+// export const getScribbleWord = (roomId,word = "", revealedHintIndexes = []) => {
+//     const revealedHints = new Set(revealedHintIndexes)
+//     return word
+//         .split("")
+//         .map((char, index) => {
+//             if (char === " ") return " "
+//             if (revealedHints.has(index)) {
+//                 return char
+//             }
 
-            return "_"
-        })
-        .join(" ")
+//             return "_"
+//         })
+//         .join(" ")
 
 
-}
+// }
 
 
 

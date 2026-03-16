@@ -11,7 +11,7 @@ import { useDispatch } from 'react-redux'
 import { createRooom } from '../features/userDetail'
 import Avatar from "../components/Avatar.jsx"
 import Player from "../components/Player.jsx"
-import {getScribbleWord} from "../utilities/scribbleWord.js"
+// import {getScribbleWord} from "../utilities/scribbleWord.js"
 import Score from '../components/Score.jsx'
 import FinalScoreCard from '../components/FinalScoreCard.jsx'
 const PlayGround = () => {
@@ -77,7 +77,7 @@ const PlayGround = () => {
       room?.setDrawerId(currentDrawer?.socketId || "")
       room?.setIsChoosing(isChoosing)
       room?.setMessages(rooom.messages)
-      room?.setDrawWord(isDrawing ? rooom.guessWord : "")
+      // room?.setDrawWord(isDrawing ? rooom.guessWord : "")
     }
 
     const handlePlayerExited = ({rooom})=>{
@@ -146,7 +146,7 @@ const PlayGround = () => {
         clearTimeout(chooseFallbackRef.current)
         chooseFallbackRef.current = null
       }
-      room?.setDrawWord(word)
+      room?.setDrawWord(word || "")
       room?.resetHintState()
       room?.setIsChoosing(false)
     }
@@ -187,7 +187,7 @@ const PlayGround = () => {
     }
 
 
-    const handleHints=({ hintIndex })=>{
+    const handleHints=({ hintIndex, hintWord })=>{
       const currentRoom = useRoom.getState()
       if (typeof hintIndex !== "number" || hintIndex < 0) {
         return
@@ -195,6 +195,11 @@ const PlayGround = () => {
 
       currentRoom.addRevealedHintIndex(hintIndex)
       currentRoom.incrementHintsShown()
+
+      const isDrawer = currentRoom.sktId === currentRoom.drawerId
+      if(!isDrawer && !currentRoom.guessed && !currentRoom.displayScore){
+        currentRoom.setDrawWord(hintWord || currentRoom.drawWord)
+      }
     }
 
     const handleNoPlayerLeft=({roomId})=>{
@@ -206,16 +211,6 @@ const PlayGround = () => {
     }
 
     const handleReplay=({roomId,rooom,playerDetail,socketId})=>{
-      // room?.setRoomDetail(rooom)
-      // room?.setPlayers(rooom.players)
-      // room?.setPlayers(rooom.players)
-      // room?.setRoomId(roomId)
-      // room?.setHostId(rooom.hostId)
-      // room?.setRoomDetail(rooom)
-      // room?.setRound(rooom.round)
-      // room?.setTimer(rooom.settings.drawTime)
-      // room?.setIsPlaying(Boolean(rooom.isPlaying))
-      // room?.setMessages(rooom.messages)
       if(room?.sktId===socketId) room?.setDisplayFinalScore(false)
     }
     
@@ -293,10 +288,11 @@ const copyLink=async (roomId)=>{
     }
 }
 
-const sendMessages=(roomId,message)=>{
+const sendMessages=async (roomId,message)=>{
   try {
-     if(message.trim()!="" && room?.drawWord.toLowerCase()===message.toLowerCase()){
-
+    if(message.trim()==="") return
+    const {res}=await verifyGuess({roomId,message})
+    if(res){
       if(room?.sktId===room?.drawerId) {
         if(isSoundOn && isGameOn && !room?.isChoosing){
           const audio=new Audio("../../sounds/faa.mp3")
@@ -304,21 +300,21 @@ const sendMessages=(roomId,message)=>{
         }
         return toast.error("You are not elligible")
       }
-      if(room?.sktId!==room?.drawerId && !room?.guessed)
-        {toast.success("You guessed It right !!!")
+      if(!room?.guessed){
+        toast.success("You guessed It right !!!")
+        room?.setDrawWord(message.toLowerCase())
         room?.setGuessed(true)
         const score = decideScore();
         updateScore(roomId,score,room?.drawerId)
         sendMessage(roomId,`${room?.myDetail.name} has guessed`)
       }
+      return
     }
-    else{
-        if(isSoundOn && isGameOn && !room?.isChoosing){
-          const audio=new Audio("../../sounds/faa.mp3")
-          audio.play()
-        }
-        sendMessage(roomId,message)
+    if(isSoundOn && isGameOn && !room?.isChoosing){
+      const audio=new Audio("../../sounds/faa.mp3")
+      audio.play()
     }
+    sendMessage(roomId,message)
   } catch (error) {
     console.log(error)
     toast.error("Failed to send message")
@@ -328,11 +324,15 @@ const sendMessages=(roomId,message)=>{
 
 const isDrawer = room?.drawerId === room?.sktId
 const hasSelectedWord = room?.drawWord?.trim() !== ""
-const navbarWord = !hasSelectedWord
-  ? "Waiting"
-  : (isDrawer || room?.guessed || room?.displayScore)
-    ? room?.drawWord
-    : getScribbleWord(room?.roomId,room?.drawWord, room?.revealedHintIndexes)
+const navbarWord =()=>{
+  if(!hasSelectedWord ){
+    return "Waiting"
+  }
+  if(isDrawer || room?.guessed || room?.displayScore){
+    return room?.drawWord
+  }
+  return room?.drawWord
+}
 
 
 
@@ -356,7 +356,7 @@ const navbarWord = !hasSelectedWord
         {/* Middle: Word Display */}
         <div className="flex-1 flex justify-center">
           <div className="bg-gray-200 px-8 py-3 rounded-lg border-2 border-gray-400">
-            <span className="text-2xl font-bold tracking-widest text-gray-800">{navbarWord}</span>
+            <span className="text-2xl font-bold tracking-widest text-gray-800">{navbarWord()}</span>
           </div>
         </div>
 

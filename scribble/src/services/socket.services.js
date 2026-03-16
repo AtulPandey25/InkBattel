@@ -71,9 +71,14 @@ export const manageTimer=(roomId)=>{
 
 export const verifyGuess=({roomId,message})=>{
     try{
-        socket.emit("verify-guess",{roomId,message})
+        return new Promise((resolve)=>{
+            socket.emit("verify-guess",{roomId,message},(response)=>{
+                resolve(response || {res:false})
+            })
+        })
     }catch(error){
         console.log(error)
+        return Promise.resolve({res:false})
     }
 }
 

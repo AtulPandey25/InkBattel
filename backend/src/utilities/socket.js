@@ -1,6 +1,6 @@
 const {Server} = require("socket.io")
 const http =require('http')
-const {createRoom,joinRoom,exitRoom,sendMessage,gameStart,drawWord,updateScore,timerUpdate,deleteRoom,verifyGuess,getRoundScore,markRoundEnded,getHintsIndex,getPublicRoomId,replay}=require("../controller/room.controller.js")
+const {createRoom,joinRoom,exitRoom,sendMessage,gameStart,drawWord,updateScore,timerUpdate,deleteRoom,verifyGuess,getRoundScore,markRoundEnded,getHintsIndex,getPublicRoomId,replay,getHints}=require("../controller/room.controller.js")
 const {rooms}=require('../model/room.model.js')
 const express=require("express")
 const app=express()
@@ -83,7 +83,11 @@ io.on("connection",(socket)=>{
     socket.on("draw-word",({roomId,word})=>{
         const room=drawWord({roomId,word})
         if(!room) return null
-        io.to(roomId).emit("guess-word",{roomId,rooom:room,word})
+        const currentDrawer = room.players?.[room.choose]
+        if(currentDrawer?.socketId){
+            io.to(currentDrawer.socketId).emit("guess-word",{roomId,rooom:room,word:room.guessWord})
+        }
+        socket.to(roomId).emit("guess-word",{roomId,rooom:room,word:getHints(roomId)})
     })
 
     socket.on("update-score",({roomId,socketId,score,drawerId})=>{
@@ -94,10 +98,18 @@ io.on("connection",(socket)=>{
 
 
 
-    socket.on("verify-guess",({roomId,message})=>{
-        const {room,res}=verifyGuess({roomId,message})
-        if(!room) return null
-        io.to(roomId).emit("verified",{rooom:room,res})
+    socket.on("verify-guess",({roomId,message},ack)=>{
+        const result=verifyGuess({roomId,message})
+        if(!result){
+            if(typeof ack==="function") ack({res:false})
+            return null
+        }
+        const {room,res}=result
+        if(!room){
+            if(typeof ack==="function") ack({res:false})
+            return null
+        }
+        if(typeof ack==="function") ack({res})
     })
 
     const roundEnd=(roomId,timerInterval)=>{
@@ -177,22 +189,22 @@ io.on("connection",(socket)=>{
             if(room.guessWord.length==3 && room.settings.hints==3){
                 if(time==room.settings.drawTime-21 ||  time==room.settings.drawTime-51){
                     const hintIndex = getHintsIndex(roomId)
-                    if(hintIndex !== null) io.to(roomId).emit("show-hints", { hintIndex })
+                    if(hintIndex !== null) io.to(roomId).emit("show-hints", { hintIndex, hintWord: getHints(roomId) })
                 }
 
             }
             else{
                 if(room.settings.hints==3 && (time==room.settings.drawTime-21 || time==room.settings.drawTime-41 || time==room.settings.drawTime-51)){
                     const hintIndex = getHintsIndex(roomId)
-                    if(hintIndex !== null) io.to(roomId).emit("show-hints", { hintIndex })
+                    if(hintIndex !== null) io.to(roomId).emit("show-hints", { hintIndex, hintWord: getHints(roomId) })
                 }
                 else if(room.settings.hints==2 && (time==room.settings.drawTime-21 || time==room.settings.drawTime-41)){
                     const hintIndex = getHintsIndex(roomId)
-                    if(hintIndex !== null) io.to(roomId).emit("show-hints", { hintIndex })
+                    if(hintIndex !== null) io.to(roomId).emit("show-hints", { hintIndex, hintWord: getHints(roomId) })
                 }
                 else if(room.settings.hints==1 && (time==room.settings.drawTime-21 )){
                     const hintIndex = getHintsIndex(roomId)
-                    if(hintIndex !== null) io.to(roomId).emit("show-hints", { hintIndex })
+                    if(hintIndex !== null) io.to(roomId).emit("show-hints", { hintIndex, hintWord: getHints(roomId) })
                 }
             }
         }, 1000);
@@ -256,7 +268,6 @@ io.on("connection",(socket)=>{
         }
     })
 
-
     socket.on("start-board",({xRatio,yRatio,roomId})=>{
         socket.to(roomId).emit("start-draw",{xRatio,yRatio,roomId})
     })
@@ -302,6 +313,8 @@ io.on("connection",(socket)=>{
         io.to(roomId).emit("player-joined",{roomId, playerDetail, socketId:socket.id,rooom})
     })
 
+
+
     // Handle disconnect - when user closes tab, loses connection, swipes back, etc.
     socket.on("disconnect",()=>{
         const roomId = socketRooms.get(socket.id);
@@ -318,6 +331,8 @@ io.on("connection",(socket)=>{
         }
 
     })
+
+
 })
 
 

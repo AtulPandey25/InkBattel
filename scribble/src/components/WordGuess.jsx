@@ -14,6 +14,7 @@ const WordGuess = () => {
         if(selectedWord.trim()===""){
           return toast.error("Please Select the Word")
        }
+       room?.setDrawWord(word)
        drawWord(roomId,word)
        manageTimer(roomId)
        room?.setIsChoosing(false)

@@ -363,4 +363,31 @@ const replay=(roomId,socketId,playerDetail,roomSettings,socket)=>{
         return null
     }
 }
-module.exports={joinRoom,createRoom,exitRoom,sendMessage,gameStart,drawWord,updateScore,timerUpdate,deleteRoom,verifyGuess,getRoundScore,markRoundEnded,getHintsIndex,getPublicRoomId,replay}
+
+
+
+const getHints=(roomId,revealedHints)=>{
+    const room=rooms.get(roomId)
+    if(!room) return null
+    const word=room.guessWord
+    if(!word || word.trim()==="") return null
+
+    const revealed = Array.isArray(revealedHints)
+        ? revealedHints
+        : room.revealedHintIndexes
+    const revealedSet = new Set(revealed)
+
+    return word
+        .split("")
+        .map((char, index) => {
+            if (char === " ") return " "
+            if (revealedSet.has(index)) {
+                return char
+            }
+
+            return "_"
+        })
+        .join(" ")
+}
+
+module.exports={joinRoom,createRoom,exitRoom,sendMessage,gameStart,drawWord,updateScore,timerUpdate,deleteRoom,verifyGuess,getRoundScore,markRoundEnded,getHintsIndex,getPublicRoomId,replay,getHints}
