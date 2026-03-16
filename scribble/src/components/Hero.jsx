@@ -12,6 +12,25 @@ const Hero = () => {
 const room=useRoom()
 const navigate=useNavigate()
 
+const getMaskedJoinWord = (roomState, viewerSocketId) => {
+  if (!roomState?.guessWord) return ""
+
+  const currentDrawer = roomState.players?.[roomState.choose]
+  const isDrawer = currentDrawer?.socketId === viewerSocketId
+  if (isDrawer) return roomState.guessWord
+
+  if (roomState.guessWord.includes("_")) return roomState.guessWord
+
+  const revealed = new Set(Array.isArray(roomState.revealedHintIndexes) ? roomState.revealedHintIndexes : [])
+  return roomState.guessWord
+    .split("")
+    .map((char, index) => {
+      if (char === " ") return " "
+      return revealed.has(index) ? char : "_"
+    })
+    .join(" ")
+}
+
 useEffect(()=>{
     if (socket.id && !room?.sktId) {
       room?.setSktId(socket.id)
@@ -34,7 +53,7 @@ useEffect(()=>{
       room?.setIsPlaying(Boolean(rooom.isPlaying))
       room?.setDrawerId(currentDrawer?.socketId || "")
       room?.setIsChoosing(isChoosing)
-      room?.setDrawWord(isDrawing ? rooom.guessWord : "")
+      room?.setDrawWord(isDrawing ? getMaskedJoinWord(rooom, socket.id) : "")
       if(socketId === socket.id){
         navigate('/ground')
       }
