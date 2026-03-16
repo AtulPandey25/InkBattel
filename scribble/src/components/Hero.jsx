@@ -272,8 +272,14 @@ const decClr=()=>{
       </div>
     </div>
 
-    {roomId?<button onClick={()=>joinRoomm(roomId,playerDetail)} className="draw-btn">START DRAWING</button>:<button onClick={(e)=>submit(e)} className="draw-btn">START DRAWING</button>}
-   {roomId?null:<button onClick={()=>createRoom()} className="draw-btn w-65">CREATE ROOM</button>}
+    <div className="mt-4 flex w-full flex-col items-center gap-3">
+      {roomId
+        ? <button onClick={()=>joinRoomm(roomId,playerDetail)} className="draw-btn w-full max-w-[280px]">START DRAWING</button>
+        : <button onClick={(e)=>submit(e)} className="draw-btn w-full max-w-[280px]">START DRAWING</button>}
+      {roomId
+        ? null
+        : <button onClick={()=>createRoom()} className="draw-btn w-full max-w-[280px]">CREATE ROOM</button>}
+    </div>
   </div>
 </div>
   )
