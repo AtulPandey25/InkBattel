@@ -309,3 +309,23 @@ input {
     width: 100%;
   }
 }
+
+/* Phone-only typography override: keep laptop unchanged */
+@media (max-width: 517px) {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body,
+  input,
+  button,
+  select,
+  textarea,
+  .pop-btn,
+  .draw-btn,
+  .word-option {
+    font-family: "Comic Sans MS", "Trebuchet MS", "Segoe UI", sans-serif !important;
+    font-weight: 400;
+  }
+}
