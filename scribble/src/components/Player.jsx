@@ -2,17 +2,17 @@ import React from 'react'
 
 const Player = ({colourr,eyee,smilee}) => {
   return (
-    <div className="flex flex-col justify-center items-center">
-      <div className={`w-10 h-10 ${colourr} border-4 border-black rounded-[50%] `}>
-            <div className="flex flex-col justify-center items-center">
-              <div className="flex justify-center items-center gap-2 mt-2 mb-[-9px]">
-                <div className={`${eyee}`}></div>
-                <div className={`${eyee}`}></div>
-              </div>
-              <div className={`${smilee}`}></div>
-            </div>
+    <div className="flex flex-col items-center justify-center leading-none">
+      <div className={`h-8 w-8 ${colourr} rounded-full border-2 border-black`}>
+        <div className="flex flex-col items-center justify-center">
+          <div className="mt-1.5 -mb-2 flex items-center justify-center gap-1">
+            <div className={`scale-75 ${eyee}`}></div>
+            <div className={`scale-75 ${eyee}`}></div>
           </div>
-          <div className={`w-15 h-9 ${colourr} border-4 border-black rounded-t-full `}></div>
+          <div className={`scale-75 ${smilee}`}></div>
+        </div>
+      </div>
+      <div className={`h-5 w-9 ${colourr} rounded-t-full border-2 border-black`}></div>
     </div>
   )
 }

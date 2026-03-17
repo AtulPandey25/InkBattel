@@ -6,7 +6,7 @@ import {startOnBoard,drawOnBoard,stopOnBoard,sendBoardSnapshot,requestBoardSync,
 import socket from "../utilities/socket.js"
 const Canvass = () => {
 const canvaRef=useRef(null)
-const [pencilStrok,setPencilStrok]=useState(3)
+const [pencilStrok,setPencilStrok]=useState(2)
 const [eraserStrok,setEraserStrok]=useState(30)
 const [clr,setClr]=useState("black")
 const [pencilClr,setPencilClr]=useState("black")
@@ -14,6 +14,8 @@ const [isDrawing,setIsDrawing]=useState(false)
 const [tool,setTool]=useState("pencil")
 const [showPencilStroke,setShowPencilStroke]=useState(false)
 const [showEraserStroke,setShowEraserStroke]=useState(false)
+const [showDotCursor, setShowDotCursor] = useState(false)
+const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 })
 const localDrawingRef = useRef(false)
 const remoteDrawingRef = useRef(false)
 
@@ -271,6 +273,16 @@ const draw = (e) => {
   drawOnBoard(xRatio,yRatio,tool,room?.roomId,pencilStrok,eraserStrok,pencilClr)
 };
 
+const handleCanvasMouseMove = (e) => {
+  const native = e.nativeEvent
+  const { x, y } = getPosFromEvent(native)
+  setCursorPos({ x, y })
+
+  if (room?.sktId === room?.drawerId) {
+    draw(e)
+  }
+}
+
 const handleTouchStart = (e) => {
   if (!isDrawer) return;
   const native = e.nativeEvent;
@@ -323,7 +335,7 @@ const handlePencil=()=>{
 
 const renderStatusCard = (title, subtitle) => (
   <div className="flex w-full max-w-xl flex-col items-center justify-center rounded-2xl border-4 border-gray-300 bg-white px-8 py-12 text-center shadow-xl">
-    <h2 className="mt-4 text-3xl font-black text-green-600 md:text-4xl">{subtitle}</h2>
+    <h2 className="mt-4 text-base font-black text-green-600 sm:text-2xl md:text-4xl">{subtitle}</h2>
   </div>
 )
 
@@ -339,14 +351,38 @@ const renderStatusCard = (title, subtitle) => (
             ? (isDrawer
                 ? <WordGuess/>
                  : <div className="flex w-full max-w-xl flex-col items-center justify-center rounded-2xl border-4 border-gray-300 bg-white px-8 py-12 text-center shadow-xl">
-                     <h2 className="mt-4 text-3xl font-black md:text-4xl">
+                     <h2 className="mt-4 text-base font-black sm:text-2xl md:text-4xl">
                        <span className="text-green-600">{drawerName}</span>
                        <span className="text-black"> is choosing the word</span>
                      </h2>
                    </div>)
             : <div className="w-full h-full flex flex-col items-center justify-center gap-3">
-                <div className="w-full max-w-[900px] h-[600px] rounded-2xl border-4 border-gray-300 bg-white shadow-xl overflow-hidden">
-                  <canvas ref={canvaRef} onMouseDown={room?.sktId===room?.drawerId?startDrawing:null} onMouseUp={room?.sktId===room?.drawerId?stopDrawing:null} onMouseMove={room?.sktId===room?.drawerId?draw:null} onMouseLeave={room?.sktId===room?.drawerId?stopDrawing:null} onTouchStart={room?.sktId===room?.drawerId?handleTouchStart:null} onTouchMove={room?.sktId===room?.drawerId?handleTouchMove:null} onTouchEnd={room?.sktId===room?.drawerId?handleTouchEnd:null} onTouchCancel={room?.sktId===room?.drawerId?handleTouchEnd:null} className="w-full h-full bg-white" style={{touchAction: 'none'}} />
+                <div className="relative w-full max-w-[900px] h-[600px] rounded-2xl border-4 border-gray-300 bg-white shadow-xl overflow-hidden">
+                  <canvas
+                    ref={canvaRef}
+                    onMouseDown={room?.sktId===room?.drawerId?startDrawing:null}
+                    onMouseUp={room?.sktId===room?.drawerId?stopDrawing:null}
+                    onMouseMove={handleCanvasMouseMove}
+                    onMouseEnter={() => setShowDotCursor(true)}
+                    onMouseLeave={(e) => {
+                      setShowDotCursor(false)
+                      if (room?.sktId === room?.drawerId) {
+                        stopDrawing(e)
+                      }
+                    }}
+                    onTouchStart={room?.sktId===room?.drawerId?handleTouchStart:null}
+                    onTouchMove={room?.sktId===room?.drawerId?handleTouchMove:null}
+                    onTouchEnd={room?.sktId===room?.drawerId?handleTouchEnd:null}
+                    onTouchCancel={room?.sktId===room?.drawerId?handleTouchEnd:null}
+                    className="w-full h-full bg-white"
+                    style={{ touchAction: 'none', cursor: showDotCursor ? 'none' : 'default' }}
+                  />
+                  {showDotCursor && (
+                    <div
+                      className="pointer-events-none absolute z-20 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black"
+                      style={{ left: cursorPos.x, top: cursorPos.y }}
+                    />
+                  )}
                 </div>
 
                 <div className="w-full max-w-[900px] rounded-2xl border-4 border-gray-300 bg-white p-3 shadow-lg">
@@ -362,7 +398,7 @@ const renderStatusCard = (title, subtitle) => (
                           <path d="M12 20h9" />
                           <path d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4Z" />
                         </svg>
-                        <span>Pencil</span>
+                        {/* <span>Pencil</span> */}
                       </button>
                       <button
                         type="button"
@@ -409,7 +445,7 @@ const renderStatusCard = (title, subtitle) => (
                           <path d="M5 11 13 3a2.8 2.8 0 0 1 4 0l4 4a2.8 2.8 0 0 1 0 4l-8 8" />
                           <path d="M16 21H7" />
                         </svg>
-                        <span>Eraser</span>
+                        {/* <span>Eraser</span> */}
                       </button>
                       <button
                         type="button"
@@ -454,7 +490,7 @@ const renderStatusCard = (title, subtitle) => (
                       />
                     </label>
 
-                    <button
+                    {/* <button
                       type="button"
                       className="flex items-center gap-2 rounded-xl border-2 border-emerald-600 bg-emerald-100 px-3 py-2 font-bold text-emerald-800 transition-colors hover:bg-emerald-200"
                     >
@@ -463,7 +499,7 @@ const renderStatusCard = (title, subtitle) => (
                         <path d="M5 12h14" />
                       </svg>
                       <span>Add</span>
-                    </button>
+                    </button> */}
 
                     <button
                       type="button"
@@ -474,7 +510,7 @@ const renderStatusCard = (title, subtitle) => (
                         <path d="M18 6 6 18" />
                         <path d="m6 6 12 12" />
                       </svg>
-                      <span>Clear</span>
+                      {/* <span>Clear</span> */}
                     </button>
                   </div>
                 </div>

@@ -30,7 +30,7 @@ const Start = () => {
       <button
       onClick={() => startGame(room?.roomId)}
         type="button"
-        className="font-bold px-8 py-3 rounded-xl border-2 transition-all duration-200"
+        className="font-bold px-8 py-3 rounded-xl border-2 transition-all duration-200 mobile-start-btn"
         style={{
           background: '#22c55e',
           color: '#13281b',

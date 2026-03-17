@@ -53,6 +53,29 @@
     border-left-width: 1.5px !important;
   }
 
+  /* Fix red margin line to stay fixed across full page height on mobile */
+  .paper-card::before {
+    position: fixed;
+    top: 0;
+    height: 100vh;
+    height: 100dvh;
+    z-index: 1;
+  }
+
+  /* Make Create Room and Home button text bold on mobile */
+  .mobile-create-btn {
+    font-weight: 800 !important;
+    color: #000 !important;
+  }
+  .mobile-home-btn {
+    font-weight: 800 !important;
+  }
+
+  /* Darker text for Start button on mobile */
+  .mobile-start-btn {
+    color: #000 !important;
+  }
+
   .create-room-container {
     align-items: flex-start !important;
     padding-bottom: 78px !important;
@@ -297,16 +320,25 @@ input {
 @media (max-width: 640px) {
   .word-guess-card {
     width: 100%;
-    padding: 24px 14px 18px 44px;
+    padding: 20px 12px 16px 38px;
+  }
+
+  .word-guess-card--chooser::before {
+    display: none;
   }
 
   .word-guess-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
   }
 
   .word-option {
-    min-height: 70px;
-    font-size: 1.4rem;
+    min-height: 46px;
+    padding: 6px 6px;
+    font-size: clamp(0.86rem, 3.4vw, 1rem);
+    line-height: 1.2;
+    border-width: 1.5px;
+    border-radius: 10px 12px 10px 12px;
   }
 
   .word-guess-footer {

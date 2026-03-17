@@ -269,6 +269,7 @@ const decClr=()=>{
           </div>
           <Avatar colourr={colours[clr]} eyee={eyes[eye]} smilee={smile[sm]}/>
         </div>
+
       </div>
     </div>
 

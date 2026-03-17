@@ -29,8 +29,8 @@ const PlayGround = () => {
   const settingsRef = useRef(null)
   const messagesEndRefDesktop = useRef(null)
   const messagesEndRefMobile = useRef(null)
-  const playerEndRef = useRef(null)
-  const playerEndRefMobile = useRef(null)
+  const playersListRefDesktop = useRef(null)
+  const playersListRefMobile = useRef(null)
   const [time,setTime]=useState(3)
   const navigate=useNavigate()
   const dispatch = useDispatch()
@@ -79,6 +79,7 @@ const PlayGround = () => {
       room?.setMessages(rooom.messages)
       // room?.setDrawWord(isDrawing ? rooom.guessWord : "")
     }
+    
 
     const handlePlayerExited = ({rooom})=>{
       room?.setPlayers(rooom.players)
@@ -256,8 +257,12 @@ const PlayGround = () => {
   }, [room?.messages])
 
   useEffect(()=>{
-    playerEndRef.current?.scrollIntoView({behavior:'smooth'})
-    playerEndRefMobile.current?.scrollIntoView({behavior:'smooth'})
+    if (playersListRefDesktop.current) {
+      playersListRefDesktop.current.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+    if (playersListRefMobile.current) {
+      playersListRefMobile.current.scrollTo({ top: 0, behavior: 'smooth' })
+    }
   },[room?.players])
 
   useEffect(() => {
@@ -405,7 +410,7 @@ const navbarWord =()=>{
           <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-4">
             <h2 className="text-xl font-bold">Players</h2>
           </div>
-          <div className="flex-1 overflow-y-auto p-3">
+          <div ref={playersListRefDesktop} className="flex-1 overflow-y-auto p-3">
             {/* Player items */}
             {room?.players?.length > 0 ? (
               [...room.players].sort((a, b) => b.score - a.score).map((player, index) => {
@@ -431,7 +436,6 @@ const navbarWord =()=>{
                 <p>No players yet</p>
               </div>
             )}
-            <div ref={playerEndRef}/>
           </div>
         </div>
 
@@ -518,7 +522,7 @@ const navbarWord =()=>{
             <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2 px-3">
               <h2 className="text-sm font-bold">Players</h2>
             </div>
-            <div className="flex-1 overflow-y-auto p-2">
+            <div ref={playersListRefMobile} className="flex-1 overflow-y-auto p-2">
               {room?.players?.length > 0 ? (
                 [...room.players].sort((a, b) => b.score - a.score).map((player, index) => {
                   const hasGuessed = room?.guessedPlayers?.some((gp) => gp.socketId === player.socketId)
@@ -530,7 +534,7 @@ const navbarWord =()=>{
                         {/* <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-xs font-bold">
                           {player?.name?.charAt(0).toUpperCase() || 'P'}
                         </div> */}
-                        <div><Avatar className="w-15 h-15" colourr={player?.colour} eyee={player?.eyes} smilee={player?.smile} /></div>
+                        <div><Player colourr={player?.colour} eyee={player?.eyes} smilee={player?.smile} /></div>
                         <span className="font-semibold text-gray-800 truncate">{player?.name || 'Player'} {player.socketId===room?.sktId?"(You)":null}</span>
                       </div>
                       <span className={`text-xs font-bold ${hasGuessed ? 'text-green-700' : 'text-green-600'}`}>{player?.score}</span>
@@ -543,7 +547,6 @@ const navbarWord =()=>{
                   <p>No players</p>
                 </div>
               )}
-              <div ref={playerEndRefMobile}/>
             </div>
           </div>
 

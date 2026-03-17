@@ -26,7 +26,7 @@ const WordGuess = () => {
   }
   return (
     <section className="word-guess-shell" aria-label="Word selection panel">
-      <div className="paper-card word-guess-card">
+      <div className="paper-card word-guess-card word-guess-card--chooser">
         <p className="word-guess-kicker">Your turn to draw</p>
         <h2 className="word-guess-title">Choose A Word</h2>
         <p className="word-guess-subtitle">
