@@ -276,6 +276,23 @@ const PlayGround = () => {
     return () => document.removeEventListener("mousedown", handleOutsideClick)
   }, [])
 
+  useEffect(() => {
+    const previousHtmlOverflow = document.documentElement.style.overflow
+    const previousBodyOverflow = document.body.style.overflow
+    const previousBodyOverscroll = document.body.style.overscrollBehavior
+
+    // Keep the game layout fixed while mobile keyboards open/close.
+    document.documentElement.style.overflow = 'hidden'
+    document.body.style.overflow = 'hidden'
+    document.body.style.overscrollBehavior = 'none'
+
+    return () => {
+      document.documentElement.style.overflow = previousHtmlOverflow
+      document.body.style.overflow = previousBodyOverflow
+      document.body.style.overscrollBehavior = previousBodyOverscroll
+    }
+  }, [])
+
   const handleSoundToggle = () => {
     const nextState = !isSoundOn
     setIsSoundOn(nextState)
@@ -342,7 +359,7 @@ const navbarWord =()=>{
 
 
   return (
-    <div className="relative w-screen h-screen bg-gray-100 flex flex-col overflow-hidden">
+    <div className="fixed inset-0 w-screen h-dvh bg-gray-100 flex flex-col overflow-hidden overscroll-none">
       {/* Top Navbar */}
       <div className="w-full h-14 sm:h-16 md:h-20 bg-white border-b-4 border-gray-300 flex items-center justify-between px-2 sm:px-3 md:px-6 gap-2 shadow-md">
         {/* Left: Clock and Round */}

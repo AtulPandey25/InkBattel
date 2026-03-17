@@ -334,8 +334,8 @@ const handlePencil=()=>{
 
 
 const renderStatusCard = (title, subtitle) => (
-  <div className="flex w-full max-w-xl flex-col items-center justify-center rounded-2xl border-4 border-gray-300 bg-white px-8 py-12 text-center shadow-xl">
-    <h2 className="mt-4 text-base font-black text-green-600 sm:text-2xl md:text-4xl">{subtitle}</h2>
+  <div className="game-status-card flex w-full max-w-xl flex-col items-center justify-center rounded-2xl border-4 border-gray-300 bg-white px-8 py-12 text-center shadow-xl">
+    <h2 className="game-status-text mt-4 text-base font-black text-green-600 sm:text-2xl md:text-4xl">{subtitle}</h2>
   </div>
 )
 
@@ -350,8 +350,8 @@ const renderStatusCard = (title, subtitle) => (
                 : room?.isChoosing
             ? (isDrawer
                 ? <WordGuess/>
-                 : <div className="flex w-full max-w-xl flex-col items-center justify-center rounded-2xl border-4 border-gray-300 bg-white px-8 py-12 text-center shadow-xl">
-                     <h2 className="mt-4 text-base font-black sm:text-2xl md:text-4xl">
+                 : <div className="game-status-card flex w-full max-w-xl flex-col items-center justify-center rounded-2xl border-4 border-gray-300 bg-white px-8 py-12 text-center shadow-xl">
+                     <h2 className="game-status-text mt-4 text-base font-black sm:text-2xl md:text-4xl">
                        <span className="text-green-600">{drawerName}</span>
                        <span className="text-black"> is choosing the word</span>
                      </h2>
