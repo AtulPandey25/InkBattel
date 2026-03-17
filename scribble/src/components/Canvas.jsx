@@ -392,11 +392,14 @@ const renderStatusCard = (title, subtitle) => (
                       <button
                         type="button"
                         onClick={() => handlePencil()}
+                        aria-label="Pencil tool"
+                        title="Pencil"
                         className={`flex items-center gap-2 rounded-l-xl border-2 border-r-0 px-3 py-2 font-bold transition-colors ${tool === "pencil" ? "border-blue-600 bg-blue-100 text-blue-800" : "border-gray-300 bg-gray-50 text-gray-700"}`}
                       >
-                        <svg className="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M12 20h9" />
-                          <path d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4Z" />
+                        <svg className="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="m4 20 4.4-1.1L18.8 8.5a2.1 2.1 0 0 0 0-3l-.3-.3a2.1 2.1 0 0 0-3 0L5.1 15.6 4 20Z" />
+                          <path d="m13.9 6.8 3.3 3.3" />
+                          <path d="M3.5 20.5h4.8" />
                         </svg>
                         {/* <span>Pencil</span> */}
                       </button>
@@ -438,12 +441,14 @@ const renderStatusCard = (title, subtitle) => (
                       <button
                         type="button"
                         onClick={() => handleEraser()}
+                        aria-label="Eraser tool"
+                        title="Eraser"
                         className={`flex items-center gap-2 rounded-l-xl border-2 border-r-0 px-3 py-2 font-bold transition-colors ${tool === "eraser" ? "border-red-600 bg-red-100 text-red-800" : "border-gray-300 bg-gray-50 text-gray-700"}`}
                       >
-                        <svg className="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="#111827" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="m7 21 10-10" />
-                          <path d="M5 11 13 3a2.8 2.8 0 0 1 4 0l4 4a2.8 2.8 0 0 1 0 4l-8 8" />
-                          <path d="M16 21H7" />
+                        <svg className="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="m6.2 14.2 6.7-6.7a2.7 2.7 0 0 1 3.8 0l3.6 3.6a2.7 2.7 0 0 1 0 3.8l-3.8 3.8a3 3 0 0 1-2.1.9H10" />
+                          <path d="m3.7 16.7 3.6-3.6 6.3 6.3a2.6 2.6 0 0 1-1.8.7H7.2a3.5 3.5 0 0 1-2.5-1 1.7 1.7 0 0 1-1-2.4Z" />
+                          <path d="M13.2 20.1h7.3" />
                         </svg>
                         {/* <span>Eraser</span> */}
                       </button>
@@ -480,14 +485,21 @@ const renderStatusCard = (title, subtitle) => (
                       )}
                     </div>
 
-                    <label className="flex items-center gap-2 rounded-xl border-2 border-gray-300 bg-gray-50 px-3 py-2 font-bold text-gray-700">
-                      <span>Color</span>
+                    <label className="relative flex h-12 w-14 cursor-pointer items-center justify-center rounded-xl border-2 border-gray-300 bg-gray-50 text-gray-700 transition-colors hover:bg-gray-100" aria-label="Pencil color" title="Pencil color">
                       <input
                         type="color"
-                        value={pencilClr === "#ffffff" ? "#111827" : clr}
+                        value={pencilClr === "#ffffff" ? "#111827" : pencilClr}
                         onChange={(e) => setPencilClr(e.target.value)}
-                        className="h-8 w-10 cursor-pointer rounded border border-gray-300 bg-white"
+                        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                       />
+                      <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 3.5c-3.9 0-7 2.9-7 6.4 0 2.7 1.9 5 4.6 5h1.2a1.5 1.5 0 0 1 0 3h-.6" />
+                        <circle cx="8" cy="9.5" r="1" />
+                        <circle cx="12" cy="8" r="1" />
+                        <circle cx="16" cy="9.5" r="1" />
+                        <circle cx="17" cy="13" r="1" />
+                      </svg>
+                      <span className="absolute bottom-1 right-1 h-3.5 w-3.5 rounded-full border border-gray-500" style={{ backgroundColor: pencilClr }} />
                     </label>
 
                     {/* <button
