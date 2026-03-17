@@ -32,6 +32,7 @@ const PlayGround = () => {
   const playersListRefDesktop = useRef(null)
   const playersListRefMobile = useRef(null)
   const [time,setTime]=useState(3)
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false)
   const navigate=useNavigate()
   const dispatch = useDispatch()
 
@@ -139,6 +140,8 @@ const PlayGround = () => {
       room?.setIsChoosing(false)
       room?.resetHintState()
       room?.setTimer(15)
+      room?.setDrawWord("")
+
       setIsGameOn(false)
     }
 
@@ -290,6 +293,24 @@ const PlayGround = () => {
       document.documentElement.style.overflow = previousHtmlOverflow
       document.body.style.overflow = previousBodyOverflow
       document.body.style.overscrollBehavior = previousBodyOverscroll
+    }
+  }, [])
+
+  useEffect(() => {
+    const visualViewport = window.visualViewport
+    if (!visualViewport) return
+
+    const updateKeyboardState = () => {
+      const keyboardThreshold = 120
+      const keyboardHeight = window.innerHeight - visualViewport.height
+      setIsKeyboardVisible(keyboardHeight > keyboardThreshold)
+    }
+
+    updateKeyboardState()
+    visualViewport.addEventListener('resize', updateKeyboardState)
+
+    return () => {
+      visualViewport.removeEventListener('resize', updateKeyboardState)
     }
   }, [])
 
@@ -457,7 +478,7 @@ const navbarWord =()=>{
         </div>
 
         {/* Center - Canvas */}
-        <div className="h-[70vh] xl:h-auto flex-1 flex items-center justify-center bg-gray-100 p-2 xl:p-4 min-w-0 overflow-hidden">
+        <div className="xl:h-auto flex-1 min-h-0 flex items-center justify-center bg-gray-100 p-2 xl:p-4 min-w-0 overflow-hidden">
           <div className="bg-white rounded-lg shadow-2xl border-4 border-gray-300 w-full h-full max-w-5xl max-h-full flex items-center justify-center">
             <Canvass key={room?.drawerId}/>
           </div>
@@ -533,7 +554,7 @@ const navbarWord =()=>{
         </div>
 
         {/* Mobile Bottom Section - Players & Messages (20vh) */}
-        <div className="xl:hidden flex h-[20vh] w-full border-t-4 border-gray-300">
+        <div className="xl:hidden flex w-full border-t-4 border-gray-300 shrink-0" style={{ flexBasis: isKeyboardVisible ? '16%' : '20%' }}>
           {/* Players List (Mobile - Left 50%) */}
           <div className="w-1/2 bg-white border-r-2 border-gray-300 flex flex-col overflow-hidden">
             <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2 px-3">
@@ -602,14 +623,14 @@ const navbarWord =()=>{
         </div>
 
         {/* Mobile Message Input (10vh) */}
-        <div className="xl:hidden h-[10vh] w-full bg-white border-t-4 border-gray-300 p-2 flex items-center">
+        <div className="xl:hidden w-full bg-white border-t-4 border-gray-300 p-2 flex items-center shrink-0" style={{ flexBasis: isKeyboardVisible ? '8%' : '10%' }}>
           <div className="flex gap-2 w-full">
             <input
               type="text"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Type your guess..."
-              className="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors text-sm"
+              className="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors text-base"
               onKeyPress={(e) => {
                 if (e.key === 'Enter') {
                   if (message.trim()) {
