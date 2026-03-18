@@ -556,11 +556,14 @@ const navbarWord =()=>{
         </div>
 
         {/* Mobile Bottom Section - Players & Messages (20vh) */}
-        {!shouldHideMobilePanels && (
         <div
           className="xl:hidden flex w-full border-t-4 border-gray-300 shrink-0 grow-0 overflow-hidden"
           style={{ height: '20dvh', minHeight: '20dvh', maxHeight: '20dvh' }}
         >
+          {shouldHideMobilePanels ? (
+            <div className="w-full h-full bg-transparent" aria-hidden="true" />
+          ) : (
+            <>
           {/* Players List (Mobile - Left 50%) */}
           <div className="w-1/2 bg-white border-r-2 border-gray-300 flex flex-col overflow-hidden">
             <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2 px-3">
@@ -626,8 +629,9 @@ const navbarWord =()=>{
               <div ref={messagesEndRefMobile} />
             </div>
           </div>
+              </>
+            )}
         </div>
-          )}
 
         {/* Mobile Message Input (10vh) */}
         <div
