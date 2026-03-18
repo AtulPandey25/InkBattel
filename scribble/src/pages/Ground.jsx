@@ -33,6 +33,7 @@ const PlayGround = () => {
   const playersListRefMobile = useRef(null)
   const [time,setTime]=useState(3)
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false)
+  const [isGuessInputFocused, setIsGuessInputFocused] = useState(false)
   const navigate=useNavigate()
   const dispatch = useDispatch()
 
@@ -367,6 +368,7 @@ const sendMessages=async (roomId,message)=>{
 
 const isDrawer = room?.drawerId === room?.sktId
 const hasSelectedWord = room?.drawWord?.trim() !== ""
+const shouldHideMobilePanels = isKeyboardVisible || isGuessInputFocused
 const navbarWord =()=>{
   if(!hasSelectedWord ){
     return "Waiting"
@@ -554,7 +556,11 @@ const navbarWord =()=>{
         </div>
 
         {/* Mobile Bottom Section - Players & Messages (20vh) */}
-        <div className="xl:hidden flex w-full border-t-4 border-gray-300 shrink-0" style={{ flexBasis: isKeyboardVisible ? '16%' : '20%' }}>
+        {!shouldHideMobilePanels && (
+        <div
+          className="xl:hidden flex w-full border-t-4 border-gray-300 shrink-0 grow-0 overflow-hidden"
+          style={{ height: '20dvh', minHeight: '20dvh', maxHeight: '20dvh' }}
+        >
           {/* Players List (Mobile - Left 50%) */}
           <div className="w-1/2 bg-white border-r-2 border-gray-300 flex flex-col overflow-hidden">
             <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2 px-3">
@@ -621,14 +627,20 @@ const navbarWord =()=>{
             </div>
           </div>
         </div>
+          )}
 
         {/* Mobile Message Input (10vh) */}
-        <div className="xl:hidden w-full bg-white border-t-4 border-gray-300 p-2 flex items-center shrink-0" style={{ flexBasis: isKeyboardVisible ? '8%' : '10%' }}>
+        <div
+          className="xl:hidden w-full bg-white border-t-4 border-gray-300 p-2 flex items-center shrink-0 grow-0 overflow-hidden"
+          style={{ height: '10dvh', minHeight: '10dvh', maxHeight: '10dvh' }}
+        >
           <div className="flex gap-2 w-full">
             <input
               type="text"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              onFocus={() => setIsGuessInputFocused(true)}
+              onBlur={() => setIsGuessInputFocused(false)}
               placeholder="Type your guess..."
               className="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors text-base"
               onKeyPress={(e) => {
