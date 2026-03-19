@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Pangolin&display=swap');
+@import "@fontsource/pangolin/400.css";
 
 /* Paper Card Button Styles (from Rooms.jsx) */
 .pop-btn {
@@ -367,14 +367,14 @@ input {
 }
 
 /* Phone-only typography override: keep laptop unchanged */
-@media (max-width: 517px), (hover: none) and (pointer: coarse) {
+@media (max-width: 517px) {
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
 
-  .mobile-phone-font,
-  .mobile-phone-font * {
+  #root,
+  #root * {
     font-family: 'Pangolin', 'Segoe UI', sans-serif !important;
     letter-spacing: 0.01em;
     -webkit-font-smoothing: antialiased;
