@@ -30,7 +30,7 @@ const getMaskedJoinWord = (roomState, viewerSocketId) => {
       if (char === " ") return " "
       return revealed.has(index) ? char : "_"
     })
-    .join(" ")
+    .join("")
 }
 
 useEffect(()=>{

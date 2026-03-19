@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {useRoom} from "../store/roomStore.jsx"
 import {drawWord,manageTimer} from "../services/socket.services.js"
 import toast from "react-hot-toast"
-const words = ['apple', 'mango', 'banana'];
 
 const WordGuess = () => {
 
