@@ -33,8 +33,10 @@ const PlayGround = () => {
   const playersListRefMobile = useRef(null)
   const mobileInputRef = useRef(null)
   const focusScrollLockTimerRef = useRef(null)
+  const preFocusTimerRef = useRef(null)
   const [keyboardOffset, setKeyboardOffset] = useState(0)
   const [isMobileInputFocused, setIsMobileInputFocused] = useState(false)
+  const [isPreparingKeyboard, setIsPreparingKeyboard] = useState(false)
   const [time,setTime]=useState(3)
   const navigate=useNavigate()
   const dispatch = useDispatch()
@@ -447,6 +449,33 @@ const navbarWord =()=>{
   return room?.drawWord
 }
 
+const triggerDelayedMobileFocus = (event) => {
+  if (isMobileInputFocused || isPreparingKeyboard) return
+  if (window.innerWidth >= 1280) return
+
+  event.preventDefault()
+  setIsPreparingKeyboard(true)
+  setKeyboardOffset((prev) => Math.max(prev, 160))
+
+  if (preFocusTimerRef.current) {
+    clearTimeout(preFocusTimerRef.current)
+  }
+
+  preFocusTimerRef.current = setTimeout(() => {
+    mobileInputRef.current?.focus({ preventScroll: true })
+    setIsPreparingKeyboard(false)
+  }, 150)
+}
+
+useEffect(() => {
+  return () => {
+    if (preFocusTimerRef.current) {
+      clearTimeout(preFocusTimerRef.current)
+      preFocusTimerRef.current = null
+    }
+  }
+}, [])
+
 
 
   return (
@@ -712,13 +741,17 @@ const navbarWord =()=>{
               type="text"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              onTouchStart={triggerDelayedMobileFocus}
+              onMouseDown={triggerDelayedMobileFocus}
               onFocus={() => {
                 setIsMobileInputFocused(true)
+                setIsPreparingKeyboard(false)
                 setTimeout(() => window.scrollTo(0, 0), 0)
                 setTimeout(() => window.scrollTo(0, 0), 80)
               }}
               onBlur={() => {
                 setIsMobileInputFocused(false)
+                setIsPreparingKeyboard(false)
                 setKeyboardOffset(0)
               }}
               placeholder="Type your guess..."
