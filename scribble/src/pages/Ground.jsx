@@ -31,7 +31,6 @@ const PlayGround = () => {
   const messagesEndRefMobile = useRef(null)
   const playersListRefDesktop = useRef(null)
   const playersListRefMobile = useRef(null)
-  const baseVisualHeightRef = useRef(0)
   const [keyboardOffset, setKeyboardOffset] = useState(0)
   const [time,setTime]=useState(3)
   const navigate=useNavigate()
@@ -321,14 +320,9 @@ const PlayGround = () => {
         return
       }
 
-      const visibleHeight = vv.height + vv.offsetTop
-      if (baseVisualHeightRef.current === 0 || visibleHeight > baseVisualHeightRef.current) {
-        baseVisualHeightRef.current = visibleHeight
-      }
-
-      const overlap = Math.max(0, baseVisualHeightRef.current - visibleHeight)
+      const overlap = Math.max(0, window.innerHeight - vv.height - vv.offsetTop)
       setKeyboardOffset(overlap)
-      window.scrollTo(0, 0)
+      requestAnimationFrame(() => window.scrollTo(0, 0))
     }
 
     updateKeyboardOffset()
@@ -483,7 +477,7 @@ const navbarWord =()=>{
       </div>
 
       {/* Main Content Area */}
-      <div className="h-full pt-14 sm:pt-16 md:pt-20 flex flex-col xl:flex-row overflow-hidden">
+      <div className="h-full pt-14 sm:pt-16 md:pt-20 pb-[10svh] xl:pb-0 flex flex-col xl:flex-row overflow-hidden">
         {/* Left Sidebar - Players List (Desktop) */}
         <div className="hidden xl:flex w-64 bg-white border-r-4 border-gray-300 flex-col shadow-lg flex-shrink-0">
           {/* Players Section */}
@@ -667,7 +661,7 @@ const navbarWord =()=>{
 
         {/* Mobile Message Input (10vh) */}
         <div
-          className="xl:hidden w-full bg-white border-t-4 border-gray-300 p-2 flex items-center shrink-0 grow-0 overflow-hidden"
+          className="xl:hidden fixed left-0 right-0 bottom-0 w-full bg-white border-t-4 border-gray-300 p-2 flex items-center overflow-hidden"
           style={{
             height: '10svh',
             minHeight: '10svh',
@@ -685,6 +679,7 @@ const navbarWord =()=>{
               onChange={(e) => setMessage(e.target.value)}
               onFocus={() => {
                 setTimeout(() => window.scrollTo(0, 0), 0)
+                setTimeout(() => window.scrollTo(0, 0), 80)
               }}
               placeholder="Type your guess..."
               className="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors text-base"
