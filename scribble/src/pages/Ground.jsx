@@ -361,7 +361,7 @@ const navbarWord =()=>{
 
 
   return (
-    <div className="fixed inset-0 w-screen h-svh bg-gray-100 flex flex-col overflow-hidden overscroll-none">
+    <div className="mobile-phone-font fixed inset-0 w-screen h-svh bg-gray-100 flex flex-col overflow-hidden overscroll-none">
       {/* Top Navbar */}
       <div className="fixed top-0 left-0 right-0 z-40 w-full h-14 sm:h-16 md:h-20 bg-white border-b-4 border-gray-300 flex items-center justify-between px-2 sm:px-3 md:px-6 gap-2 shadow-md">
         {/* Left: Clock and Round */}
