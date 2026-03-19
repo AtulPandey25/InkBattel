@@ -102,6 +102,7 @@
   }
 }
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand:wght@400&display=swap');
 
 body {
   background-color: #2c3e50; /* Dark background to make the paper pop */
@@ -380,7 +381,8 @@ input {
   .pop-btn,
   .draw-btn,
   .word-option {
-    font-family: "Comic Sans MS", "Trebuchet MS", "Segoe UI", sans-serif !important;
+    font-family: 'Patrick Hand', 'Gochi Hand', cursive !important;
     font-weight: 400;
+    letter-spacing: 0.01em;
   }
 }
