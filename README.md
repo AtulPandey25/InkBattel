@@ -23,11 +23,17 @@ https://ink-battle.vercel.app
 
 Home Screen:
 
-![Home Screen](./screenshots/home-screen.png)
+![Home Screen](./screenshots/home.png)
 
 Ground Screen:
 
-![Ground Screen](./screenshots/ground-screen.png)
+![Ground Screen](./screenshots/ground.png)
+
+Create Room Screen:
+
+![Create Room Screen](./screenshots/room.png)
+
+
 
 ## Game Overview
 
