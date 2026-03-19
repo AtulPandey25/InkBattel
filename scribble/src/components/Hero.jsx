@@ -63,6 +63,7 @@ useEffect(()=>{
 
     const handleJoinFailed = ({message})=>{
       setIsStartingDrawing(false)
+      navigate("/")
       toast.error(message || "Unable to join room")
     }
 
