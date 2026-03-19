@@ -34,6 +34,7 @@ const PlayGround = () => {
   const mobileInputRef = useRef(null)
   const focusScrollLockTimerRef = useRef(null)
   const preFocusTimerRef = useRef(null)
+  const disconnectHandledRef = useRef(false)
   const [keyboardOffset, setKeyboardOffset] = useState(0)
   const [isMobileInputFocused, setIsMobileInputFocused] = useState(false)
   const [isPreparingKeyboard, setIsPreparingKeyboard] = useState(false)
@@ -58,14 +59,15 @@ const PlayGround = () => {
       }
     }
   }, [room.roomId])
-
   useEffect(()=>{
-       if (socket.id && !room?.sktId) {
-      room?.setSktId(socket.id)
+      const currentRoom = useRoom.getState()
+      if (socket.id && !currentRoom?.sktId) {
+        currentRoom?.setSktId(socket.id)
     }
   }, [])
 
-
+  /* eslint-disable react-hooks/exhaustive-deps */
+  // Intentionally subscribe socket listeners once on mount/unmount.
   useEffect(()=>{
     const handlePlayerJoined = ({roomId, rooom})=>{
       const currentDrawer = rooom.players?.[rooom.choose]
@@ -223,7 +225,30 @@ const PlayGround = () => {
     const handleRoomClosed = ({reason}) => {
       toast.error(reason === "host-left" ? "Host left. Room closed." : "Room closed.")
       dispatch(createRooom(false))
+      useRoom.getState().resetRoom()
       navigate("/")
+    }
+
+    const handleSocketDisconnect = () => {
+      if(disconnectHandledRef.current) return
+      disconnectHandledRef.current = true
+      toast.error("Disconnected from server")
+      dispatch(createRooom(false))
+      useRoom.getState().resetRoom()
+      navigate("/")
+    }
+
+    const handleSocketConnectError = () => {
+      if(disconnectHandledRef.current) return
+      disconnectHandledRef.current = true
+      toast.error("Unable to connect to server")
+      dispatch(createRooom(false))
+      useRoom.getState().resetRoom()
+      navigate("/")
+    }
+
+    const handleSocketConnect = () => {
+      disconnectHandledRef.current = false
     }
 
     const handleReplay=({roomId,rooom,playerDetail,socketId})=>{
@@ -244,6 +269,9 @@ const PlayGround = () => {
     socket.on("no-player-left",handleNoPlayerLeft)
     socket.on("room-closed", handleRoomClosed)
     socket.on("replayed",handleReplay)
+    socket.on("disconnect", handleSocketDisconnect)
+    socket.on("connect_error", handleSocketConnectError)
+    socket.on("connect", handleSocketConnect)
     
     return ()=>{
       if (chooseFallbackRef.current) {
@@ -264,9 +292,13 @@ const PlayGround = () => {
       socket.off("no-player-left",handleNoPlayerLeft)
       socket.off("room-closed", handleRoomClosed)
       socket.off("replayed",handleReplay)
+      socket.off("disconnect", handleSocketDisconnect)
+      socket.off("connect_error", handleSocketConnectError)
+      socket.off("connect", handleSocketConnect)
 
     }
   },[])
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   useEffect(() => {
     messagesEndRefDesktop.current?.scrollIntoView({ behavior: 'smooth' })

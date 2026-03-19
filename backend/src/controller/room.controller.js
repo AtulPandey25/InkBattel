@@ -203,6 +203,7 @@ const gameStart=(roomId)=>{
             words = randomWords(room.settings.wordCount, room.displayedWords)
         }
 
+        
         room.displayedWords=[...new Set([...room.displayedWords,...words])]
         if(!currentDrawer) return null
         room.notGuessed.forEach((player,index)=>{

@@ -56,6 +56,9 @@ io.on("connection",(socket)=>{
         socket.emit("room-created",{roomId: rooom.roomId, rooom, playerDetail,socketId:socket.id})
     })
 
+
+
+
     socket.on("join-room",({roomId,playerDetail})=>{
         const room = rooms.get(roomId)
         if(!room){
@@ -351,8 +354,10 @@ io.on("connection",(socket)=>{
 
 
 
-    // Handle disconnect - when user closes tab, loses connection, swipes back, etc.
-    socket.on("disconnect",()=>{
+
+
+      socket.on("disconnect",()=>{
+        socket.emit("join-room-failed",{message:"Disconnected !!!"})
         const roomId = socketRooms.get(socket.id);
         if(roomId){
             const roomBeforeExit = rooms.get(roomId)
@@ -362,6 +367,7 @@ io.on("connection",(socket)=>{
                 if(wasHost && rooom.players.length<2){
                     closeRoomForAll(roomId, "host-left")
                 }
+                
                 else{
                     io.to(roomId).emit("player-exited",{roomId,rooom,socketId:socket.id})
                     if(wasHost && rooom.players.length>=2){
@@ -372,8 +378,11 @@ io.on("connection",(socket)=>{
                     }
                 }
             }
+
             socketRooms.delete(socket.id)
+            
         }
+
 
     })
 
