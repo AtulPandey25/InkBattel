@@ -787,7 +787,7 @@ useEffect(() => {
       )}
 
       {room?.displayFinalScore && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-3">
+        <div className="absolute inset-0 z-50 flex items-center justify-center overflow-hidden bg-slate-950/55 px-3 py-4">
           <FinalScoreCard players={room?.players || []} />
         </div>
       )}
