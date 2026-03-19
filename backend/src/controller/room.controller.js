@@ -97,6 +97,16 @@ const exitRoom=(roomId,socketId)=>{
         const index=room.players.findIndex((p)=> p.socketId==socketId)
         room.players.splice(index,1)
 
+        // Keep drawer index valid after removing a player.
+        if(room.players.length>0){
+            if(index < room.choose){
+                room.choose = Math.max(0, room.choose - 1)
+            }
+            else if(room.choose >= room.players.length){
+                room.choose = 0
+            }
+        }
+
         const notGuessedIndex = room.notGuessed.findIndex((player)=>player.socketId==socketId)
         if(notGuessedIndex!==-1){
             room.notGuessed.splice(notGuessedIndex,1)
@@ -105,6 +115,12 @@ const exitRoom=(roomId,socketId)=>{
         const guessedIndex = room.guessed.findIndex((player)=>player.socketId==socketId)
         if(guessedIndex!==-1){
             room.guessed.splice(guessedIndex,1)
+        }
+
+        if(room.hostId===socketId && room.players.length>0){
+            const nextHostIndex = index >= room.players.length ? 0 : index
+            room.hostId = room.players[nextHostIndex].socketId
+            room.messages.push(createSystemMessage(`${room.players[nextHostIndex].name} is the new host`, "host-transfer"))
         }
 
         if(room.players.length===1 && room.isPlaying){

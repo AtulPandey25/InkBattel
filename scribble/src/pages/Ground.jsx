@@ -83,6 +83,7 @@ const PlayGround = () => {
 
     const handlePlayerExited = ({rooom})=>{
       room?.setPlayers(rooom.players)
+      room?.setHostId(rooom.hostId)
       room?.setRoomDetail(rooom)
       room?.setMessages(rooom.messages)
     }
@@ -205,12 +206,18 @@ const PlayGround = () => {
       }
     }
 
-    const handleNoPlayerLeft=({roomId})=>{
-      toast.error(`Everyone Left Closing room in ${time} seconds`)
+    const handleNoPlayerLeft=({roomId,message})=>{
+      toast.error(message || `Everyone Left Closing room in ${time} seconds`)
       setTimeout(() => {
         dispatch(createRooom(false))
         navigate("/")
       }, 3000);
+    }
+
+    const handleRoomClosed = ({reason}) => {
+      toast.error(reason === "host-left" ? "Host left. Room closed." : "Room closed.")
+      dispatch(createRooom(false))
+      navigate("/")
     }
 
     const handleReplay=({roomId,rooom,playerDetail,socketId})=>{
@@ -229,6 +236,7 @@ const PlayGround = () => {
     socket.on("score-updated", handleScoreUpdated)
     socket.on("show-hints", handleHints)
     socket.on("no-player-left",handleNoPlayerLeft)
+    socket.on("room-closed", handleRoomClosed)
     socket.on("replayed",handleReplay)
     
     return ()=>{
@@ -248,6 +256,7 @@ const PlayGround = () => {
       socket.off("score-updated", handleScoreUpdated)
       socket.off("show-hints", handleHints)
       socket.off("no-player-left",handleNoPlayerLeft)
+      socket.off("room-closed", handleRoomClosed)
       socket.off("replayed",handleReplay)
 
     }

@@ -25,6 +25,27 @@ const roomChooseTimers = new Map();
 
 io.on("connection",(socket)=>{
 
+    const clearRoomTimers = (roomId) => {
+        const activeTimer = roomTimers.get(roomId)
+        if(activeTimer){
+            clearInterval(activeTimer)
+            roomTimers.delete(roomId)
+        }
+
+        const activeChooseTimer = roomChooseTimers.get(roomId)
+        if(activeChooseTimer){
+            clearInterval(activeChooseTimer)
+            roomChooseTimers.delete(roomId)
+        }
+    }
+
+    const closeRoomForAll = (roomId, reason) => {
+        clearRoomTimers(roomId)
+        rooms.delete(roomId)
+        io.to(roomId).emit("room-closed", { roomId, reason })
+        io.in(roomId).socketsLeave(roomId)
+    }
+
     socket.on("create-room",({roomSettings, playerDetail})=>{
         const rooom=createRoom(socket.id, playerDetail, roomSettings)
         if(!rooom){
@@ -58,14 +79,26 @@ io.on("connection",(socket)=>{
     
     socket.on("exit-room",({roomId})=>{
         const socketId=socket.id;
+        const roomBeforeExit = rooms.get(roomId)
+        const wasHost = roomBeforeExit?.hostId === socketId
         const rooom=exitRoom(roomId,socketId)
         socket.leave(roomId)
         socketRooms.delete(socket.id)
-        if(rooom){
-            io.to(roomId).emit("player-exited",{roomId,rooom,socketId})
-            if(rooom.isPlaying && rooom.players.length===1){
-                io.to(roomId).emit("no-player-left",{roomId})
-            }  
+
+        if(!rooom) return
+
+        if(wasHost && rooom.players.length<2){
+            closeRoomForAll(roomId, "host-left")
+            return
+        }
+
+        io.to(roomId).emit("player-exited",{roomId,rooom,socketId})
+        if(wasHost && rooom.players.length>=2){
+            io.to(roomId).emit("host-transferred",{roomId,newHostId:rooom.hostId})
+        }
+
+        if(rooom.players.length===1){
+            closeRoomForAll(roomId, "not-enough-players")
         }
     })
 
@@ -322,13 +355,22 @@ io.on("connection",(socket)=>{
     socket.on("disconnect",()=>{
         const roomId = socketRooms.get(socket.id);
         if(roomId){
+            const roomBeforeExit = rooms.get(roomId)
+            const wasHost = roomBeforeExit?.hostId === socket.id
             const rooom = exitRoom(roomId, socket.id)
             if(rooom){
-                io.to(roomId).emit("player-exited",{roomId,rooom,socketId:socket.id})
-                    if(rooom.isPlaying && rooom.players.length===1){
-                    console.log("Noo Leftt")
-                    io.to(roomId).emit("no-player-left",{roomId})
-                }  
+                if(wasHost && rooom.players.length<2){
+                    closeRoomForAll(roomId, "host-left")
+                }
+                else{
+                    io.to(roomId).emit("player-exited",{roomId,rooom,socketId:socket.id})
+                    if(wasHost && rooom.players.length>=2){
+                        io.to(roomId).emit("host-transferred",{roomId,newHostId:rooom.hostId})
+                    }
+                    if(rooom.players.length===1){
+                        closeRoomForAll(roomId, "not-enough-players")
+                    }
+                }
             }
             socketRooms.delete(socket.id)
         }
