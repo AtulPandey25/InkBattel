@@ -46,6 +46,25 @@ io.on("connection",(socket)=>{
         io.in(roomId).socketsLeave(roomId)
     }
 
+    const advanceTurnAfterDrawerExit = (roomId, roomAfterExit) => {
+        if(!roomAfterExit || !roomAfterExit.isPlaying) return
+        if(roomAfterExit.players.length < 2) return
+        clearRoomTimers(roomId)
+        roomAfterExit.choose = (roomAfterExit.choose - 1 + roomAfterExit.players.length) % roomAfterExit.players.length
+        const gameData = gameStart(roomId)
+        if(!gameData) return
+        const {players,drawerId,round,totalRounds,words,guessed,notGuessed}=gameData
+        if(!players || !drawerId || !round || !words) return
+        if(round>totalRounds){
+            const deletedRoom = deleteRoom(roomId)
+            if(!deletedRoom) return
+            timerStart=false
+            io.to(roomId).emit("game-ended",{roomId,guessed,notGuessed})
+            return
+        }
+        io.to(roomId).emit("round-started",{roomId,players,drawerId,round,words,guessed,notGuessed})
+    }
+
     socket.on("create-room",({roomSettings, playerDetail})=>{
         const rooom=createRoom(socket.id, playerDetail, roomSettings)
         if(!rooom){
@@ -84,6 +103,11 @@ io.on("connection",(socket)=>{
         const socketId=socket.id;
         const roomBeforeExit = rooms.get(roomId)
         const wasHost = roomBeforeExit?.hostId === socketId
+        const wasDrawerDuringTurn = Boolean(
+            roomBeforeExit?.isPlaying &&
+            (roomBeforeExit?.phase === "drawing" || roomBeforeExit?.phase === "choosing") &&
+            roomBeforeExit?.players?.[roomBeforeExit.choose]?.socketId === socketId
+        )
         const rooom=exitRoom(roomId,socketId)
         socket.leave(roomId)
         socketRooms.delete(socket.id)
@@ -102,6 +126,11 @@ io.on("connection",(socket)=>{
 
         if(rooom.players.length===1){
             closeRoomForAll(roomId, "not-enough-players")
+            return
+        }
+
+        if(wasDrawerDuringTurn){
+            advanceTurnAfterDrawerExit(roomId, rooom)
         }
     })
 
@@ -362,12 +391,17 @@ io.on("connection",(socket)=>{
         if(roomId){
             const roomBeforeExit = rooms.get(roomId)
             const wasHost = roomBeforeExit?.hostId === socket.id
+            const wasDrawerDuringTurn = Boolean(
+                roomBeforeExit?.isPlaying &&
+                (roomBeforeExit?.phase === "drawing" || roomBeforeExit?.phase === "choosing") &&
+                roomBeforeExit?.players?.[roomBeforeExit.choose]?.socketId === socket.id
+            )
             const rooom = exitRoom(roomId, socket.id)
             if(rooom){
                 if(wasHost && rooom.players.length<2){
                     closeRoomForAll(roomId, "host-left")
                 }
-                
+
                 else{
                     io.to(roomId).emit("player-exited",{roomId,rooom,socketId:socket.id})
                     if(wasHost && rooom.players.length>=2){
@@ -375,6 +409,9 @@ io.on("connection",(socket)=>{
                     }
                     if(rooom.players.length===1){
                         closeRoomForAll(roomId, "not-enough-players")
+                    }
+                    else if(wasDrawerDuringTurn){
+                        advanceTurnAfterDrawerExit(roomId, rooom)
                     }
                 }
             }

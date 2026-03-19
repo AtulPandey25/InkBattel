@@ -89,7 +89,6 @@ const exitRoom=(roomId,socketId)=>{
     try{
         const room=rooms.get(roomId)
         if(!room){
-            console.log("No room found")
             return null
         }
         const player = room.players.find((player)=>player.socketId==socketId)
@@ -203,7 +202,7 @@ const gameStart=(roomId)=>{
             words = randomWords(room.settings.wordCount, room.displayedWords)
         }
 
-        
+
         room.displayedWords=[...new Set([...room.displayedWords,...words])]
         if(!currentDrawer) return null
         room.notGuessed.forEach((player,index)=>{
