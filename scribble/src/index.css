@@ -56,15 +56,6 @@
     border-left-width: 1.5px !important;
   }
 
-  /* Fix red margin line to stay fixed across full page height on mobile */
-  .paper-card::before {
-    position: fixed;
-    top: 0;
-    height: 100vh;
-    height: 100dvh;
-    z-index: 1;
-  }
-
   /* Make Create Room and Home button text bold on mobile */
   .mobile-create-btn {
     font-weight: 800 !important;
@@ -83,12 +74,15 @@
     align-items: flex-start !important;
     padding-bottom: 78px !important;
     position: relative;
+    height: calc(100dvh - 96px);
+    overflow: hidden;
   }
 
   .mobile-form {
-    max-height: calc(100dvh - 235px);
+    max-height: 100%;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
     margin-top: 10px;
     padding-bottom: 100px;
   }
@@ -142,6 +136,21 @@ body {
   width: 620px;
   max-width: 90vw;
   padding: 48px 32px 32px 80px; /* More space for larger card */
+  max-height: calc(100dvh - 180px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: 12px auto;
+}
+
+.create-room-page {
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.create-room-shell {
+  height: 100%;
+  overflow: hidden;
+  position: relative;
 }
 
 /* The Red Notebook Margin Line */
@@ -389,7 +398,7 @@ input {
   .draw-btn,
   .word-option {
     font-family: 'Pangolin', 'Segoe UI', sans-serif !important;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: 0.01em;
     -webkit-font-smoothing: antialiased;
   }

@@ -71,9 +71,9 @@ const CreateRoom = () => {
 
 
   return (
-    <div className="w-screen min-h-screen flex flex-col" style={{ minHeight: '100vh' }}>
+    <div className="w-screen min-h-screen flex flex-col create-room-page" style={{ minHeight: '100vh' }}>
 
-      <div className="w-screen flex flex-col items-center">
+      <div className="w-screen flex flex-col items-center create-room-shell">
         <h1 className="create-room-heading" style={{ fontSize: '2rem', marginTop: '24px', marginBottom: '8px', color: '#333' }}>Create Room</h1>
         <div className="create-room-container" style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <form
