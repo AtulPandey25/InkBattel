@@ -414,7 +414,7 @@ const getHints=(roomId,revealedHints)=>{
 
             return "_"
         })
-        .join(" ")
+        .join("")
 }
 
 module.exports={joinRoom,createRoom,exitRoom,sendMessage,gameStart,drawWord,updateScore,timerUpdate,deleteRoom,verifyGuess,getRoundScore,markRoundEnded,getHintsIndex,getPublicRoomId,replay,getHints}
