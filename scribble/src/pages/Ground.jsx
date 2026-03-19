@@ -31,7 +31,10 @@ const PlayGround = () => {
   const messagesEndRefMobile = useRef(null)
   const playersListRefDesktop = useRef(null)
   const playersListRefMobile = useRef(null)
+  const mobileInputRef = useRef(null)
+  const focusScrollLockTimerRef = useRef(null)
   const [keyboardOffset, setKeyboardOffset] = useState(0)
+  const [isMobileInputFocused, setIsMobileInputFocused] = useState(false)
   const [time,setTime]=useState(3)
   const navigate=useNavigate()
   const dispatch = useDispatch()
@@ -320,6 +323,11 @@ const PlayGround = () => {
         return
       }
 
+      if (!isMobileInputFocused) {
+        setKeyboardOffset(0)
+        return
+      }
+
       const overlap = Math.max(0, window.innerHeight - vv.height - vv.offsetTop)
       setKeyboardOffset(overlap)
       requestAnimationFrame(() => window.scrollTo(0, 0))
@@ -346,9 +354,35 @@ const PlayGround = () => {
       document.body.style.left = previousBodyLeft
       document.body.style.right = previousBodyRight
       document.body.style.width = previousBodyWidth
+      if (focusScrollLockTimerRef.current) {
+        clearInterval(focusScrollLockTimerRef.current)
+        focusScrollLockTimerRef.current = null
+      }
       window.scrollTo(0, scrollY)
     }
-  }, [])
+  }, [isMobileInputFocused])
+
+  useEffect(() => {
+    if (!isMobileInputFocused) {
+      if (focusScrollLockTimerRef.current) {
+        clearInterval(focusScrollLockTimerRef.current)
+        focusScrollLockTimerRef.current = null
+      }
+      return
+    }
+
+    window.scrollTo(0, 0)
+    focusScrollLockTimerRef.current = setInterval(() => {
+      window.scrollTo(0, 0)
+    }, 50)
+
+    return () => {
+      if (focusScrollLockTimerRef.current) {
+        clearInterval(focusScrollLockTimerRef.current)
+        focusScrollLockTimerRef.current = null
+      }
+    }
+  }, [isMobileInputFocused])
 
   const handleSoundToggle = () => {
     const nextState = !isSoundOn
@@ -674,12 +708,18 @@ const navbarWord =()=>{
         >
           <div className="flex gap-2 w-full">
             <input
+              ref={mobileInputRef}
               type="text"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onFocus={() => {
+                setIsMobileInputFocused(true)
                 setTimeout(() => window.scrollTo(0, 0), 0)
                 setTimeout(() => window.scrollTo(0, 0), 80)
+              }}
+              onBlur={() => {
+                setIsMobileInputFocused(false)
+                setKeyboardOffset(0)
               }}
               placeholder="Type your guess..."
               className="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors text-base"
