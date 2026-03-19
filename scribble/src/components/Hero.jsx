@@ -11,6 +11,8 @@ import toast from "react-hot-toast"
 const Hero = () => {
 const room=useRoom()
 const navigate=useNavigate()
+const [isCreatingRoom, setIsCreatingRoom] = useState(false)
+const [isStartingDrawing, setIsStartingDrawing] = useState(false)
 
 const getMaskedJoinWord = (roomState, viewerSocketId) => {
   if (!roomState?.guessWord) return ""
@@ -60,6 +62,7 @@ useEffect(()=>{
     }
 
     const handleJoinFailed = ({message})=>{
+      setIsStartingDrawing(false)
       toast.error(message || "Unable to join room")
     }
 
@@ -165,9 +168,11 @@ const [name,setName]=useState("")
 const [avatarVal,setAvatarVal]=useState({})
 
 const createRoom=()=>{
+  if (isCreatingRoom) return
   if(name.trim()==""){
     return toast.error("Please enter the name")
   }
+  setIsCreatingRoom(true)
   const payload = {name:name,colour:colours[clr],eyes:eyes[eye],smile:smile[sm]}
   setAvatarVal(payload)
   dispatch(updateAvatar(payload))
@@ -181,9 +186,11 @@ const createRoom=()=>{
 
 const submit=(e)=>{
   e.preventDefault()
+  if (isStartingDrawing) return
   if(name.trim()==""){
     return toast.error("Please enter the name")
   }
+  setIsStartingDrawing(true)
   const payload = {name:name,colour:colours[clr],eyes:eyes[eye],smile:smile[sm]}
   setAvatarVal(payload)
   dispatch(updateAvatar(payload))
@@ -196,9 +203,11 @@ const submit=(e)=>{
 }
 
 const joinRoomm=(roomId,playerDetail)=>{
+  if (isStartingDrawing) return
   if(name.trim()==""){
     return toast.error("Please enter the name")
   }
+    setIsStartingDrawing(true)
     const payload = {name:name,colour:colours[clr],eyes:eyes[eye],smile:smile[sm]}
     setAvatarVal(payload)
     dispatch(updateAvatar(payload))
@@ -275,11 +284,11 @@ const decClr=()=>{
 
     <div className="mt-4 flex w-full flex-col items-center gap-3">
       {roomId
-        ? <button onClick={()=>joinRoomm(roomId,playerDetail)} className="draw-btn w-full max-w-[280px]">START DRAWING</button>
-        : <button onClick={(e)=>submit(e)} className="draw-btn w-full max-w-[280px]">START DRAWING</button>}
+        ? <button onClick={()=>joinRoomm(roomId,playerDetail)} disabled={isStartingDrawing} className="draw-btn w-full max-w-70" style={{opacity: isStartingDrawing ? 0.7 : 1, cursor: isStartingDrawing ? 'not-allowed' : 'pointer'}}>{isStartingDrawing ? 'STARTING...' : 'START DRAWING'}</button>
+        : <button onClick={(e)=>submit(e)} disabled={isStartingDrawing} className="draw-btn w-full max-w-70" style={{opacity: isStartingDrawing ? 0.7 : 1, cursor: isStartingDrawing ? 'not-allowed' : 'pointer'}}>{isStartingDrawing ? 'STARTING...' : 'START DRAWING'}</button>}
       {roomId
         ? null
-        : <button onClick={()=>createRoom()} className="draw-btn w-full max-w-[280px]">CREATE ROOM</button>}
+        : <button onClick={()=>createRoom()} disabled={isCreatingRoom} className="draw-btn w-full max-w-70" style={{opacity: isCreatingRoom ? 0.7 : 1, cursor: isCreatingRoom ? 'not-allowed' : 'pointer'}}>{isCreatingRoom ? 'CREATING...' : 'CREATE ROOM'}</button>}
     </div>
   </div>
 </div>

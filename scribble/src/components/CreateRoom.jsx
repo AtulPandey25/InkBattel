@@ -15,6 +15,7 @@ const CreateRoom = () => {
   const [drawTime, setDrawTime] = useState(80);
   const [wordCount, setWordCount] = useState(3);
   const [visibility,setVisibility]=useState("public")
+  const [isCreating, setIsCreating] = useState(false)
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -46,6 +47,7 @@ const CreateRoom = () => {
       if(roomName.trim()==""){
         return toast.error("Please Enter the Room Name")
       }
+      setIsCreating(true)
       const roomSettings = {
         roomName,
         settings: {
@@ -60,12 +62,14 @@ const CreateRoom = () => {
       await createRoom(roomSettings, playerDetail);
     } catch(error) {
       console.log(error);
+      setIsCreating(false)
       return toast.error("Internal Server Error Occured")
     }
   }
 
   const handleCreateRoomSubmit = (e) => {
     e.preventDefault()
+    if (isCreating) return
     createRoomm(playerDetail)
   }
 
@@ -143,10 +147,11 @@ const CreateRoom = () => {
           <button
             type="submit"
             form="create-room-form"
+            disabled={isCreating}
             className="pop-btn font-bold h-full mobile-create-btn"
-            style={{ width: '65%', background: '#22c55e', color: '#222', fontFamily: 'Gochi Hand, cursive', fontSize: '1.15rem', borderColor: '#16a34a', borderWidth: 3, borderStyle: 'solid', borderRadius: '8px 0 0 0', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', margin: 0, padding: 0 }}
+            style={{ width: '65%', background: '#22c55e', color: '#222', fontFamily: 'Gochi Hand, cursive', fontSize: '1.15rem', borderColor: '#16a34a', borderWidth: 3, borderStyle: 'solid', borderRadius: '8px 0 0 0', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', margin: 0, padding: 0, opacity: isCreating ? 0.75 : 1, cursor: isCreating ? 'not-allowed' : 'pointer' }}
           >
-            Create Room
+            {isCreating ? 'Creating...' : 'Create Room'}
           </button>
           <button
           type="button"

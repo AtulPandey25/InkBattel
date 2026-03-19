@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {useRoom} from "../store/roomStore.jsx"
 import toast from "react-hot-toast"
 import {gameBegin} from "../services/socket.services.js"
 
 const Start = () => {
     const room=useRoom()
+    const [isStarting, setIsStarting] = useState(false)
 
     const startGame=(roomId)=>{
+      if (isStarting) return
       if(!roomId){
         toast.error("Room not found")
         return
@@ -16,11 +18,13 @@ const Start = () => {
         return
       }
         try{
+            setIsStarting(true)
             room?.setIsPlaying(true)
             toast.success("Game Started")
             gameBegin(roomId)
         }catch(error){
             room?.setIsPlaying(false)
+            setIsStarting(false)
             toast.error("Failed to Start game")
         }
     }
@@ -29,6 +33,7 @@ const Start = () => {
     <div className="w-full min-h-30 flex items-center justify-center px-4">
       <button
       onClick={() => startGame(room?.roomId)}
+        disabled={isStarting}
         type="button"
         className="font-bold px-8 py-3 rounded-xl border-2 transition-all duration-200 mobile-start-btn"
         style={{
@@ -38,6 +43,8 @@ const Start = () => {
           fontSize: '1.2rem',
           borderColor: '#15803d',
           boxShadow: '0 6px 14px rgba(21, 128, 61, 0.22)',
+          opacity: isStarting ? 0.7 : 1,
+          cursor: isStarting ? 'not-allowed' : 'pointer',
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = 'translateY(-1px)';
@@ -48,7 +55,7 @@ const Start = () => {
           e.currentTarget.style.boxShadow = '0 6px 14px rgba(21, 128, 61, 0.22)';
         }}
       >
-        Start Game
+        {isStarting ? 'Starting...' : 'Start Game'}
       </button>
     </div>
   );
