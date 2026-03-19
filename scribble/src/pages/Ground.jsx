@@ -31,6 +31,8 @@ const PlayGround = () => {
   const messagesEndRefMobile = useRef(null)
   const playersListRefDesktop = useRef(null)
   const playersListRefMobile = useRef(null)
+  const baseVisualHeightRef = useRef(0)
+  const [keyboardOffset, setKeyboardOffset] = useState(0)
   const [time,setTime]=useState(3)
   const navigate=useNavigate()
   const dispatch = useDispatch()
@@ -289,18 +291,68 @@ const PlayGround = () => {
 
   useEffect(() => {
     const previousHtmlOverflow = document.documentElement.style.overflow
+    const previousHtmlHeight = document.documentElement.style.height
     const previousBodyOverflow = document.body.style.overflow
+    const previousBodyHeight = document.body.style.height
     const previousBodyOverscroll = document.body.style.overscrollBehavior
+    const previousBodyPosition = document.body.style.position
+    const previousBodyTop = document.body.style.top
+    const previousBodyLeft = document.body.style.left
+    const previousBodyRight = document.body.style.right
+    const previousBodyWidth = document.body.style.width
+    const scrollY = window.scrollY || window.pageYOffset || 0
 
-    // Keep the game layout fixed while mobile keyboards open/close.
+    // Keep the whole game screen fixed while keyboard opens.
     document.documentElement.style.overflow = 'hidden'
+    document.documentElement.style.height = '100%'
     document.body.style.overflow = 'hidden'
+    document.body.style.height = '100%'
     document.body.style.overscrollBehavior = 'none'
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.left = '0'
+    document.body.style.right = '0'
+    document.body.style.width = '100%'
+
+    const updateKeyboardOffset = () => {
+      const vv = window.visualViewport
+      if (!vv) {
+        setKeyboardOffset(0)
+        return
+      }
+
+      const visibleHeight = vv.height + vv.offsetTop
+      if (baseVisualHeightRef.current === 0 || visibleHeight > baseVisualHeightRef.current) {
+        baseVisualHeightRef.current = visibleHeight
+      }
+
+      const overlap = Math.max(0, baseVisualHeightRef.current - visibleHeight)
+      setKeyboardOffset(overlap)
+      window.scrollTo(0, 0)
+    }
+
+    updateKeyboardOffset()
+    window.addEventListener('resize', updateKeyboardOffset)
+    window.addEventListener('orientationchange', updateKeyboardOffset)
+    window.visualViewport?.addEventListener('resize', updateKeyboardOffset)
+    window.visualViewport?.addEventListener('scroll', updateKeyboardOffset)
 
     return () => {
+      window.removeEventListener('resize', updateKeyboardOffset)
+      window.removeEventListener('orientationchange', updateKeyboardOffset)
+      window.visualViewport?.removeEventListener('resize', updateKeyboardOffset)
+      window.visualViewport?.removeEventListener('scroll', updateKeyboardOffset)
       document.documentElement.style.overflow = previousHtmlOverflow
+      document.documentElement.style.height = previousHtmlHeight
       document.body.style.overflow = previousBodyOverflow
+      document.body.style.height = previousBodyHeight
       document.body.style.overscrollBehavior = previousBodyOverscroll
+      document.body.style.position = previousBodyPosition
+      document.body.style.top = previousBodyTop
+      document.body.style.left = previousBodyLeft
+      document.body.style.right = previousBodyRight
+      document.body.style.width = previousBodyWidth
+      window.scrollTo(0, scrollY)
     }
   }, [])
 
@@ -616,13 +668,24 @@ const navbarWord =()=>{
         {/* Mobile Message Input (10vh) */}
         <div
           className="xl:hidden w-full bg-white border-t-4 border-gray-300 p-2 flex items-center shrink-0 grow-0 overflow-hidden"
-          style={{ height: '10svh', minHeight: '10svh', maxHeight: '10svh' }}
+          style={{
+            height: '10svh',
+            minHeight: '10svh',
+            maxHeight: '10svh',
+            transform: `translateY(-${keyboardOffset}px)`,
+            transition: 'transform 120ms ease-out',
+            willChange: 'transform',
+            zIndex: 50,
+          }}
         >
           <div className="flex gap-2 w-full">
             <input
               type="text"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              onFocus={() => {
+                setTimeout(() => window.scrollTo(0, 0), 0)
+              }}
               placeholder="Type your guess..."
               className="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors text-base"
               onKeyPress={(e) => {
