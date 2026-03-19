@@ -35,6 +35,7 @@ const createRoom=(socketId, playerDetail, roomSettings)=>{
             notGuessed:[],
             guessed:[],
             revealedHintIndexes:[],
+            displayedWords:[],
             settings: roomSettings.settings,
             messages:[],
             createdAt: Date.now()
@@ -194,7 +195,15 @@ const gameStart=(roomId)=>{
             player.isDrawing = index===room.choose
         })
         const currentDrawer = room.players[room.choose]
-        const words=randomWords(room.settings.wordCount)
+        let words=randomWords(room.settings.wordCount, room.displayedWords)
+
+        // When all words are exhausted for this room, restart the cycle.
+        if(words.length < room.settings.wordCount){
+            room.displayedWords=[]
+            words = randomWords(room.settings.wordCount, room.displayedWords)
+        }
+
+        room.displayedWords=[...new Set([...room.displayedWords,...words])]
         if(!currentDrawer) return null
         room.notGuessed.forEach((player,index)=>{
             if(player.socketId===currentDrawer.socketId){
