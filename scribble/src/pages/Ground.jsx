@@ -32,8 +32,6 @@ const PlayGround = () => {
   const playersListRefDesktop = useRef(null)
   const playersListRefMobile = useRef(null)
   const [time,setTime]=useState(3)
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false)
-  const [isGuessInputFocused, setIsGuessInputFocused] = useState(false)
   const navigate=useNavigate()
   const dispatch = useDispatch()
 
@@ -297,24 +295,6 @@ const PlayGround = () => {
     }
   }, [])
 
-  useEffect(() => {
-    const visualViewport = window.visualViewport
-    if (!visualViewport) return
-
-    const updateKeyboardState = () => {
-      const keyboardThreshold = 120
-      const keyboardHeight = window.innerHeight - visualViewport.height
-      setIsKeyboardVisible(keyboardHeight > keyboardThreshold)
-    }
-
-    updateKeyboardState()
-    visualViewport.addEventListener('resize', updateKeyboardState)
-
-    return () => {
-      visualViewport.removeEventListener('resize', updateKeyboardState)
-    }
-  }, [])
-
   const handleSoundToggle = () => {
     const nextState = !isSoundOn
     setIsSoundOn(nextState)
@@ -368,7 +348,6 @@ const sendMessages=async (roomId,message)=>{
 
 const isDrawer = room?.drawerId === room?.sktId
 const hasSelectedWord = room?.drawWord?.trim() !== ""
-const shouldHideMobilePanels = isKeyboardVisible || isGuessInputFocused
 const navbarWord =()=>{
   if(!hasSelectedWord ){
     return "Waiting"
@@ -382,9 +361,9 @@ const navbarWord =()=>{
 
 
   return (
-    <div className="fixed inset-0 w-screen h-dvh bg-gray-100 flex flex-col overflow-hidden overscroll-none">
+    <div className="fixed inset-0 w-screen h-svh bg-gray-100 flex flex-col overflow-hidden overscroll-none">
       {/* Top Navbar */}
-      <div className="w-full h-14 sm:h-16 md:h-20 bg-white border-b-4 border-gray-300 flex items-center justify-between px-2 sm:px-3 md:px-6 gap-2 shadow-md">
+      <div className="fixed top-0 left-0 right-0 z-40 w-full h-14 sm:h-16 md:h-20 bg-white border-b-4 border-gray-300 flex items-center justify-between px-2 sm:px-3 md:px-6 gap-2 shadow-md">
         {/* Left: Clock and Round */}
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
@@ -443,7 +422,7 @@ const navbarWord =()=>{
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col xl:flex-row overflow-hidden">
+      <div className="h-full pt-14 sm:pt-16 md:pt-20 flex flex-col xl:flex-row overflow-hidden">
         {/* Left Sidebar - Players List (Desktop) */}
         <div className="hidden xl:flex w-64 bg-white border-r-4 border-gray-300 flex-col shadow-lg flex-shrink-0">
           {/* Players Section */}
@@ -558,13 +537,8 @@ const navbarWord =()=>{
         {/* Mobile Bottom Section - Players & Messages (20vh) */}
         <div
           className="xl:hidden flex w-full border-t-4 border-gray-300 shrink-0 grow-0 overflow-hidden"
-          style={{ height: '20dvh', minHeight: '20dvh', maxHeight: '20dvh' }}
+          style={{ height: '20svh', minHeight: '20svh', maxHeight: '20svh' }}
         >
-          {shouldHideMobilePanels ? (
-            <div className="w-full h-full bg-transparent" aria-hidden="true" />
-          ) : (
-            <>
-          {/* Players List (Mobile - Left 50%) */}
           <div className="w-1/2 bg-white border-r-2 border-gray-300 flex flex-col overflow-hidden">
             <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2 px-3">
               <h2 className="text-sm font-bold">Players</h2>
@@ -597,7 +571,6 @@ const navbarWord =()=>{
             </div>
           </div>
 
-          {/* Messages Display (Mobile - Right 50%) */}
           <div className="w-1/2 bg-white flex flex-col overflow-hidden">
             <div className="bg-gradient-to-r from-green-500 to-green-600 text-white py-2 px-3">
               <h2 className="text-sm font-bold">Chat</h2>
@@ -629,22 +602,18 @@ const navbarWord =()=>{
               <div ref={messagesEndRefMobile} />
             </div>
           </div>
-              </>
-            )}
         </div>
 
         {/* Mobile Message Input (10vh) */}
         <div
           className="xl:hidden w-full bg-white border-t-4 border-gray-300 p-2 flex items-center shrink-0 grow-0 overflow-hidden"
-          style={{ height: '10dvh', minHeight: '10dvh', maxHeight: '10dvh' }}
+          style={{ height: '10svh', minHeight: '10svh', maxHeight: '10svh' }}
         >
           <div className="flex gap-2 w-full">
             <input
               type="text"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              onFocus={() => setIsGuessInputFocused(true)}
-              onBlur={() => setIsGuessInputFocused(false)}
               placeholder="Type your guess..."
               className="flex-1 px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors text-base"
               onKeyPress={(e) => {
