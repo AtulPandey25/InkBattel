@@ -652,10 +652,10 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* Mobile Bottom Section - Players & Messages (20vh) */}
+        {/* Mobile Bottom Section - Players & Messages */}
         <div
           className="xl:hidden flex w-full border-t-4 border-gray-300 shrink-0 grow-0 overflow-hidden"
-          style={{ height: '20svh', minHeight: '20svh', maxHeight: '20svh' }}
+          style={{ height: '22svh', minHeight: '22svh', maxHeight: '22svh' }}
         >
           <div className="w-1/2 bg-white border-r-2 border-gray-300 flex flex-col overflow-hidden">
             <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2 px-3">
