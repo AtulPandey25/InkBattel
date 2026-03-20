@@ -411,7 +411,6 @@ const getHints=(roomId,revealedHints)=>{
             if (revealedSet.has(index)) {
                 return char
             }
-
             return "_"
         })
         .join("")

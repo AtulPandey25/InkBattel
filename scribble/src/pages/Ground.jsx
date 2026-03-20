@@ -471,6 +471,15 @@ const sendMessages=async (roomId,message)=>{
 
 const isDrawer = room?.drawerId === room?.sktId
 const hasSelectedWord = room?.drawWord?.trim() !== ""
+const formatMaskedWordForDisplay = (word) => {
+  if (!word || !word.includes("_")) return word
+
+  return word
+    .split(" ")
+    .map((segment) => segment.split("").join(" "))
+    .join("\u00A0\u00A0\u00A0")
+}
+
 const navbarWord =()=>{
   if(!hasSelectedWord ){
     return "Waiting"
@@ -478,7 +487,7 @@ const navbarWord =()=>{
   if(isDrawer || room?.guessed || room?.displayScore){
     return room?.drawWord
   }
-  return room?.drawWord
+  return formatMaskedWordForDisplay(room?.drawWord)
 }
 
 const triggerDelayedMobileFocus = (event) => {
